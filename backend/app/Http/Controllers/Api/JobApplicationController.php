@@ -3,47 +3,47 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreJobApplicationRequest;
+use App\Services\JobApplicationService;
+use Illuminate\Http\JsonResponse;
+use Throwable;
 
 class JobApplicationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function __construct(
+        private readonly JobApplicationService $jobApplicationService
+    ) {
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Yeni iş başvurusu oluştur.
      */
-    public function store(Request $request)
-    {
-        //
-    }
+    public function store(
+        StoreJobApplicationRequest $request
+    ): JsonResponse {
+        try {
+            $jobApplication = $this->jobApplicationService->create(
+                data: $request->validated(),
+                cv: $request->file('cv'),
+                ipAddress: $request->ip(),
+            );
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+            return response()->json([
+                'success' => true,
+                'message' => 'Başvurunuz başarıyla alınmıştır.',
+                'data' => [
+                    'id' => $jobApplication->id,
+                    'status' => $jobApplication->status,
+                    'applied_at' => $jobApplication->applied_at,
+                ],
+            ], 201);
+        } catch (Throwable $exception) {
+            report($exception);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            return response()->json([
+                'success' => false,
+                'message' => 'Başvuru kaydedilirken bir hata oluştu.',
+            ], 500);
+        }
     }
 }

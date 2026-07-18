@@ -1,0 +1,77 @@
+info:
+  name: Create Job Application
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/job-applications
+  body:
+    type: multipart-form
+    data:
+      - name: position_id
+        type: text
+        value: "1"
+      - name: first_name
+        type: text
+        value: Muhammed
+      - name: last_name
+        type: text
+        value: Çeken
+      - name: phone
+        type: text
+        value: "05551234567"
+      - name: email
+        type: text
+        value: test@example.com
+      - name: gender
+        type: text
+        value: male
+      - name: birth_date
+        type: text
+        value: 2000-01-01
+      - name: city
+        type: text
+        value: Manisa
+      - name: district
+        type: text
+        value: Akhisar
+      - name: experience
+        type: text
+        value: "2"
+      - name: education_level
+        type: text
+        value: bachelor_degree
+      - name: employment_type
+        type: text
+        value: full_time
+      - name: military_status
+        type: text
+        value: completed
+      - name: driver_license
+        type: text
+        value: B
+      - name: smoker
+        type: text
+        value: "0"
+      - name: shift_available
+        type: text
+        value: "1"
+      - name: about
+        type: text
+        value: Restoran sektöründe çalışmak istiyorum.
+      - name: kvkk_approved
+        type: text
+        value: "1"
+      - name: cv
+        type: file
+        value:
+          - C:\Users\HP\OneDrive\Masaüstü\belgelerim\cv\cv_1815167.pdf
+        contentType: application/pdf
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

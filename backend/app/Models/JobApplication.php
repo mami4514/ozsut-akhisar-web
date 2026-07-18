@@ -18,12 +18,32 @@ class JobApplication extends Model
         'city',
         'district',
         'experience',
+        'education_level',
+        'employment_type',
+        'military_status',
+        'driver_license',
+        'smoker',
+        'shift_available',
         'about',
         'cv_path',
+        'kvkk_approved',
         'status',
         'admin_note',
         'ip_address',
+        'applied_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'birth_date' => 'date',
+            'experience' => 'integer',
+            'smoker' => 'boolean',
+            'shift_available' => 'boolean',
+            'kvkk_approved' => 'boolean',
+            'applied_at' => 'datetime',
+        ];
+    }
 
     public function position(): BelongsTo
     {
