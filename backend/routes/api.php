@@ -10,3 +10,7 @@ Route::post(
     '/job-applications',
     [JobApplicationController::class, 'store']
 );
+Route::get(
+    '/job-applications',
+    [JobApplicationController::class, 'index']
+);

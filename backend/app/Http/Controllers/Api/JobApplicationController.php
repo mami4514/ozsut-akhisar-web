@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJobApplicationRequest;
+use App\Http\Resources\JobApplicationResource;
 use App\Services\JobApplicationService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class JobApplicationController extends Controller
@@ -13,6 +15,26 @@ class JobApplicationController extends Controller
     public function __construct(
         private readonly JobApplicationService $jobApplicationService
     ) {
+    }
+
+    /**
+     * İş başvurularını listele.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $jobApplications = $this->jobApplicationService
+            ->getPaginated($request);
+
+        return response()->json([
+            'success' => true,
+            'data' => JobApplicationResource::collection($jobApplications),
+            'meta' => [
+                'current_page' => $jobApplications->currentPage(),
+                'last_page' => $jobApplications->lastPage(),
+                'per_page' => $jobApplications->perPage(),
+                'total' => $jobApplications->total(),
+            ],
+        ]);
     }
 
     /**

@@ -4,8 +4,18 @@ info:
   seq: 1
 
 http:
-  method: POST
-  url: http://127.0.0.1:8000/api/job-applications
+  method: GET
+  url: http://127.0.0.1:8000/api/job-applications?search=muhammed&status=new&position_id=1
+  params:
+    - name: search
+      value: muhammed
+      type: query
+    - name: status
+      value: new
+      type: query
+    - name: position_id
+      value: "1"
+      type: query
   body:
     type: multipart-form
     data:
