@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/positions', [PositionController::class, 'index']);
 
-Route::post(
-    '/job-applications',
-    [JobApplicationController::class, 'store']
-);
-Route::get(
-    '/job-applications',
-    [JobApplicationController::class, 'index']
-);
+Route::prefix('job-applications')->group(function () {
+
+    Route::get('/', [JobApplicationController::class, 'index']);
+
+    Route::get('/{id}', [JobApplicationController::class, 'show']);
+
+    Route::post('/', [JobApplicationController::class, 'store']);
+});

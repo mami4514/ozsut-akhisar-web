@@ -49,6 +49,16 @@ class JobApplicationService
     }
 
     /**
+     * ID'ye göre iş başvurusunu getirir.
+     */
+    public function findById(int $id): JobApplication
+    {
+        return JobApplication::query()
+            ->with('position')
+            ->findOrFail($id);
+    }
+
+    /**
      * Yeni iş başvurusu oluşturur.
      *
      * @param array<string, mixed> $data

@@ -5,17 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://127.0.0.1:8000/api/job-applications?search=muhammed&status=new&position_id=1
-  params:
-    - name: search
-      value: muhammed
-      type: query
-    - name: status
-      value: new
-      type: query
-    - name: position_id
-      value: "1"
-      type: query
+  url: http://127.0.0.1:8000/api/job-applications/1
   body:
     type: multipart-form
     data:

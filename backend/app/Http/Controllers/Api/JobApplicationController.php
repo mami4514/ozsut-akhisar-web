@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJobApplicationRequest;
+use App\Http\Resources\JobApplicationDetailResource;
 use App\Http\Resources\JobApplicationResource;
 use App\Services\JobApplicationService;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,29 @@ class JobApplicationController extends Controller
                 'total' => $jobApplications->total(),
             ],
         ]);
+    }
+
+    /**
+     * İş başvurusu detayını getir.
+     */
+    public function show(int $id): JsonResponse
+    {
+        try {
+            $jobApplication = $this->jobApplicationService
+                ->findById($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => new JobApplicationDetailResource($jobApplication),
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'İş başvurusu bulunamadı.',
+            ], 404);
+        }
     }
 
     /**
