@@ -10,10 +10,10 @@ import { useRouter } from "next/navigation";
 import {
   BriefcaseBusiness,
   Clock3,
-  FileText,
   Users,
 } from "lucide-react";
 
+import LatestApplications from "@/components/dashboard/LatestApplications";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import { buttonVariants } from "@/components/ui/button";
@@ -170,31 +170,34 @@ export default function DashboardPage() {
       )}
 
       <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Son Başvurular</CardTitle>
+        {dashboard ? (
+            <LatestApplications
+              applications={dashboard.latestApplications}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <div className="h-5 w-36 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-64 animate-pulse rounded bg-muted" />
+              </CardHeader>
 
-            <CardDescription>
-              Kariyer formundan gönderilen son başvurular burada
-              görüntülenecek.
-            </CardDescription>
-          </CardHeader>
+              <CardContent className="space-y-4">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between border-b pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <div className="space-y-2">
+                      <div className="h-4 w-36 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+                    </div>
 
-          <CardContent>
-            <div className="flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed text-center">
-              <FileText className="size-9 text-muted-foreground" />
-
-              <p className="mt-4 font-medium">
-                Başvuru verileri henüz bağlanmadı
-              </p>
-
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                Bir sonraki aşamada bu alanı Laravel kariyer API’sinden
-                gelen gerçek verilerle dolduracağız.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                    <div className="h-8 w-20 animate-pulse rounded bg-muted" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
         <Card>
           <CardHeader>
