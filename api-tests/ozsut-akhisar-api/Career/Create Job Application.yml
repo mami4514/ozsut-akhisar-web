@@ -4,14 +4,17 @@ info:
   seq: 1
 
 http:
-  method: PATCH
-  url: http://127.0.0.1:8000/api/job-applications/1/status
+  method: GET
+  url: /api/me
+  headers:
+    - name: Authorization
+      value: Bearer 2|H300X8bmvuN7RbcT6yMue0WAxkTz8eXk61ah5MKac582613b
   body:
     type: json
     data: |-
       {
-        "status": "interview",
-        "admin_note": "Telefon görüşmesi olumlu geçti."
+        "email": "admin@ozsut.com",
+        "password": "12345678"
       }
   auth: inherit
 
