@@ -13,4 +13,7 @@ Route::prefix('job-applications')->group(function () {
     Route::get('/{id}', [JobApplicationController::class, 'show']);
 
     Route::post('/', [JobApplicationController::class, 'store']);
+
+    Route::patch('/{id}/status', [JobApplicationController::class, 'updateStatus']);
+
 });

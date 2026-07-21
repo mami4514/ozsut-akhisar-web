@@ -101,4 +101,21 @@ class JobApplicationService
             throw $exception;
         }
     }
+            /**
+         * Update job application status.
+         */
+        public function updateStatus(
+            int $id,
+            string $status,
+            ?string $adminNote = null
+        ): JobApplication {
+            $jobApplication = JobApplication::query()->findOrFail($id);
+
+            $jobApplication->update([
+                'status' => $status,
+                'admin_note' => $adminNote,
+            ]);
+
+            return $jobApplication->fresh(['position']);
+        }
 }

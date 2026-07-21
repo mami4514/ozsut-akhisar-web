@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJobApplicationRequest;
+use App\Http\Requests\UpdateJobApplicationStatusRequest;
 use App\Http\Resources\JobApplicationDetailResource;
 use App\Http\Resources\JobApplicationResource;
 use App\Services\JobApplicationService;
@@ -90,6 +91,37 @@ class JobApplicationController extends Controller
                 'success' => false,
                 'message' => 'Başvuru kaydedilirken bir hata oluştu.',
             ], 500);
+        }
+    }
+
+    /**
+     * İş başvurusu durumunu güncelle.
+     */
+    public function updateStatus(
+        UpdateJobApplicationStatusRequest $request,
+        int $id
+    ): JsonResponse {
+        try {
+            $validated = $request->validated();
+
+            $jobApplication = $this->jobApplicationService->updateStatus(
+                id: $id,
+                status: $validated['status'],
+                adminNote: $validated['admin_note'] ?? null,
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Başvuru durumu başarıyla güncellendi.',
+                'data' => new JobApplicationDetailResource($jobApplication),
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'İş başvurusu bulunamadı veya güncellenemedi.',
+            ], 404);
         }
     }
 }
