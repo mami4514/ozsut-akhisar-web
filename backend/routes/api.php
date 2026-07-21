@@ -28,19 +28,30 @@ Route::get('/positions', [PositionController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
-| Job Application Routes
+| Public Job Application Routes
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('job-applications')->group(function () {
-    Route::get('/', [JobApplicationController::class, 'index']);
+Route::post(
+    '/job-applications',
+    [JobApplicationController::class, 'store']
+);
 
-    Route::get('/{id}', [JobApplicationController::class, 'show']);
+/*
+|--------------------------------------------------------------------------
+| Protected Job Application Routes
+|--------------------------------------------------------------------------
+*/
 
-    Route::post('/', [JobApplicationController::class, 'store']);
+Route::middleware('auth:sanctum')
+    ->prefix('job-applications')
+    ->group(function () {
+        Route::get('/', [JobApplicationController::class, 'index']);
 
-    Route::patch(
-        '/{id}/status',
-        [JobApplicationController::class, 'updateStatus']
-    );
-});
+        Route::get('/{id}', [JobApplicationController::class, 'show']);
+
+        Route::patch(
+            '/{id}/status',
+            [JobApplicationController::class, 'updateStatus']
+        );
+    });

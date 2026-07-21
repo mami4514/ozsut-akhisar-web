@@ -4,11 +4,11 @@ info:
   seq: 1
 
 http:
-  method: GET
-  url: /api/me
+  method: POST
+  url: http://localhost:8000/api/job-applications
   headers:
     - name: Authorization
-      value: Bearer 2|H300X8bmvuN7RbcT6yMue0WAxkTz8eXk61ah5MKac582613b
+      value: Bearer 3|fEB4wV5IvmrG7somSn92qOiaYXD6ltlRZ9nXcXvvdfb3ca53
   body:
     type: json
     data: |-
