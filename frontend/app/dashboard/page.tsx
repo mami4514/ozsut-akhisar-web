@@ -1,7 +1,10 @@
 "use client";
 
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import { useEffect, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,6 +14,8 @@ import {
   Users,
 } from "lucide-react";
 
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardStats from "@/components/dashboard/DashboardStats";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +24,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  getDashboard,
+  type DashboardResponse,
+} from "@/services/dashboard.service";
 
 interface AuthUser {
   id: number;
@@ -44,35 +53,14 @@ function getStoredUser(): AuthUser | null {
   }
 }
 
-const statistics = [
-  {
-    title: "Toplam Başvuru",
-    value: "—",
-    description: "Tüm kariyer başvuruları",
-    icon: FileText,
-  },
-  {
-    title: "Yeni Başvurular",
-    value: "—",
-    description: "İncelenmeyi bekleyenler",
-    icon: Clock3,
-  },
-  {
-    title: "Aktif Pozisyonlar",
-    value: "—",
-    description: "Başvuruya açık pozisyonlar",
-    icon: BriefcaseBusiness,
-  },
-  {
-    title: "Toplam Kullanıcı",
-    value: "1",
-    description: "Yönetim paneli kullanıcıları",
-    icon: Users,
-  },
-];
-
 export default function DashboardPage() {
   const router = useRouter();
+
+  const [dashboard, setDashboard] =
+    useState<DashboardResponse | null>(null);
+
+  const [dashboardError, setDashboardError] =
+    useState<string | null>(null);
 
   const isClient = useSyncExternalStore(
     subscribe,
@@ -105,6 +93,37 @@ export default function DashboardPage() {
     }
   }, [isClient, router]);
 
+  useEffect(() => {
+    if (!isClient || !user) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function loadDashboard() {
+      try {
+        const data = await getDashboard();
+
+        if (!isCancelled) {
+          setDashboard(data);
+          setDashboardError(null);
+        }
+      } catch {
+        if (!isCancelled) {
+          setDashboardError(
+            "Dashboard verileri alınırken bir hata oluştu.",
+          );
+        }
+      }
+    }
+
+    void loadDashboard();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isClient, user]);
+
   if (!isClient || !user) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -119,35 +138,36 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <DashboardHeader userName={user.name} />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statistics.map((statistic) => {
-          const Icon = statistic.icon;
-
-          return (
-            <Card key={statistic.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {statistic.title}
-                </CardTitle>
-
-                <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-                  <Icon className="size-4 text-muted-foreground" />
-                </div>
+      {dashboardError ? (
+        <Card>
+          <CardContent className="py-6">
+            <p className="text-sm text-destructive">
+              {dashboardError}
+            </p>
+          </CardContent>
+        </Card>
+      ) : dashboard ? (
+        <DashboardStats statistics={dashboard.statistics} />
+      ) : (
+        <section
+          aria-label="Dashboard istatistikleri yükleniyor"
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        >
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <div className="h-4 w-28 animate-pulse rounded bg-muted" />
               </CardHeader>
 
               <CardContent>
-                <p className="text-3xl font-bold">
-                  {statistic.value}
-                </p>
+                <div className="h-8 w-14 animate-pulse rounded bg-muted" />
 
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {statistic.description}
-                </p>
+                <div className="mt-3 h-3 w-40 animate-pulse rounded bg-muted" />
               </CardContent>
             </Card>
-          );
-        })}
-      </section>
+          ))}
+        </section>
+      )}
 
       <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>
