@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, LoaderCircle, LockKeyhole } from "lucide-react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import {
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LockKeyhole,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,11 +23,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { login } from "@/services/auth.service";
 
 const loginSchema = z.object({
   email: z
-    .email("Geçerli bir e-posta adresi girin.")
-    .min(1, "E-posta adresi zorunludur."),
+    .string()
+    .min(1, "E-posta adresi zorunludur.")
+    .email("Geçerli bir e-posta adresi girin."),
+
   password: z
     .string()
     .min(1, "Şifre zorunludur.")
@@ -29,8 +39,30 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+    access_token: string;
+    token_type: string;
+  };
+}
+
+interface ValidationErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
+}
+
 export default function LoginPage() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const {
     register,
@@ -45,9 +77,63 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    setApiError(null);
 
-    console.log("Login form values:", values);
+    try {
+      const response = (await login(values)) as LoginResponse;
+
+      localStorage.setItem(
+        "access_token",
+        response.data.access_token,
+      );
+
+      localStorage.setItem(
+        "auth_user",
+        JSON.stringify(response.data.user),
+      );
+
+      router.push("/dashboard");
+    } catch (error) {
+      if (axios.isAxiosError<ValidationErrorResponse>(error)) {
+        if (!error.response) {
+          setApiError(
+            "Laravel sunucusuna bağlanılamadı. Backend'in çalıştığından emin olun.",
+          );
+
+          return;
+        }
+
+        if (error.response.status === 401) {
+          setApiError("E-posta adresi veya şifre hatalı.");
+
+          return;
+        }
+
+        if (error.response.status === 422) {
+          const validationErrors = error.response.data.errors;
+          const firstError = validationErrors
+            ? Object.values(validationErrors)[0]?.[0]
+            : null;
+
+          setApiError(
+            firstError ??
+              error.response.data.message ??
+              "Girilen bilgileri kontrol edin.",
+          );
+
+          return;
+        }
+
+        setApiError(
+          error.response.data.message ??
+            "Giriş sırasında beklenmeyen bir hata oluştu.",
+        );
+
+        return;
+      }
+
+      setApiError("Beklenmeyen bir hata oluştu.");
+    }
   };
 
   return (
@@ -81,6 +167,15 @@ export default function LoginPage() {
             onSubmit={handleSubmit(onSubmit)}
             noValidate
           >
+            {apiError && (
+              <div
+                role="alert"
+                className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              >
+                {apiError}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">E-posta adresi</Label>
 
@@ -90,6 +185,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 placeholder="admin@ozsut.com"
                 aria-invalid={Boolean(errors.email)}
+                disabled={isSubmitting}
                 {...register("email")}
               />
 
@@ -111,6 +207,7 @@ export default function LoginPage() {
                   placeholder="En az 8 karakter"
                   className="pr-11"
                   aria-invalid={Boolean(errors.password)}
+                  disabled={isSubmitting}
                   {...register("password")}
                 />
 
@@ -119,9 +216,14 @@ export default function LoginPage() {
                   variant="ghost"
                   size="icon"
                   className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
-                  onClick={() => setShowPassword((current) => !current)}
+                  onClick={() =>
+                    setShowPassword((current) => !current)
+                  }
+                  disabled={isSubmitting}
                   aria-label={
-                    showPassword ? "Şifreyi gizle" : "Şifreyi göster"
+                    showPassword
+                      ? "Şifreyi gizle"
+                      : "Şifreyi göster"
                   }
                 >
                   {showPassword ? (
@@ -148,7 +250,9 @@ export default function LoginPage() {
                 <LoaderCircle className="size-4 animate-spin" />
               )}
 
-              {isSubmitting ? "Giriş yapılıyor..." : "Giriş Yap"}
+              {isSubmitting
+                ? "Giriş yapılıyor..."
+                : "Giriş Yap"}
             </Button>
           </form>
 
