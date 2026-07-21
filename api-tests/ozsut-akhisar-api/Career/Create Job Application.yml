@@ -4,11 +4,13 @@ info:
   seq: 1
 
 http:
-  method: POST
-  url: http://localhost:8000/api/job-applications
+  method: GET
+  url: http://127.0.0.1:8000/api/dashboard
   headers:
+    - name: Accept
+      value: application/json
     - name: Authorization
-      value: Bearer 3|fEB4wV5IvmrG7somSn92qOiaYXD6ltlRZ9nXcXvvdfb3ca53
+      value: Bearer 15|rCartMUT1QsdkEX884foly2OX75Hdqzb3SCeWd2g8f7cebc0
   body:
     type: json
     data: |-
