@@ -52,7 +52,7 @@ class JobApplicationDetailResource extends JsonResource
             'cv' => [
                 'path' => $this->cv_path,
                 'url' => $this->cv_path
-                    ? Storage::url($this->cv_path)
+                    ? url('storage/' . $this->cv_path)
                     : null,
             ],
 

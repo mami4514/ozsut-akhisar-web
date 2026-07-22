@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import ApplicationAbout from "@/components/career/ApplicationAbout";
+import ApplicationExperience from "@/components/career/ApplicationExperience";
+import ApplicationHeader from "@/components/career/ApplicationHeader";
+import ApplicationInfoCard from "@/components/career/ApplicationInfoCard";
+import ApplicationPersonalInfo from "@/components/career/ApplicationPersonalInfo";
 
 import {
   getJobApplication,
@@ -10,14 +15,12 @@ import {
 
 export default function CareerDetailPage() {
   const params = useParams();
-
   const id = Number(params.id);
 
   const [application, setApplication] =
     useState<JobApplicationDetail | null>(null);
 
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,20 +65,48 @@ export default function CareerDetailPage() {
   if (error || !application) {
     return (
       <div className="py-12 text-center text-destructive">
-        {error}
+        {error ?? "Başvuru bulunamadı."}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">
-        {application.full_name}
-      </h1>
+    <div className="space-y-6">
+      <ApplicationHeader
+        fullName={application.full_name}
+        position={application.position?.name ?? null}
+        status={application.status}
+      />
 
-      <p>{application.position?.name}</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ApplicationPersonalInfo
+          phone={application.phone}
+          email={application.email}
+          gender={application.gender}
+          birthDate={application.birth_date}
+          city={application.location?.city ?? null}
+          district={application.location?.district ?? null}
+        />
 
-      <p>{application.email}</p>
+        <ApplicationInfoCard
+          status={application.status}
+          appliedAt={application.applied_at}
+          cvUrl={application.cv?.url ?? null}
+          kvkkApproved={application.kvkk_approved}
+        />
+      </div>
+      <ApplicationExperience
+        experience={application.experience}
+        educationLevel={application.education_level}
+        employmentType={application.employment_type}
+        militaryStatus={application.military_status}
+        driverLicense={application.driver_license}
+        smoker={application.smoker}
+        shiftAvailable={application.shift_available}
+      />
+      <ApplicationAbout
+        about={application.about}
+      />
     </div>
   );
 }
