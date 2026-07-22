@@ -55,8 +55,20 @@ export interface JobApplicationDetail {
   updated_at: string;
 }
 
+export interface UpdateJobApplicationStatusPayload {
+  status: string;
+  admin_note: string | null;
+}
+
+
 interface JobApplicationDetailResponse {
   success: boolean;
+  data: JobApplicationDetail;
+}
+
+interface UpdateJobApplicationStatusResponse {
+  success: boolean;
+  message: string;
   data: JobApplicationDetail;
 }
 
@@ -67,6 +79,24 @@ export async function getJobApplication(
 
   const response = await api.get<JobApplicationDetailResponse>(
     `/job-applications/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data.data;
+}
+export async function updateJobApplicationStatus(
+  id: number,
+  payload: UpdateJobApplicationStatusPayload
+): Promise<JobApplicationDetail> {
+  const token = localStorage.getItem("access_token");
+
+  const response = await api.patch<UpdateJobApplicationStatusResponse>(
+    `/job-applications/${id}/status`,
+    payload,
     {
       headers: {
         Authorization: `Bearer ${token}`,

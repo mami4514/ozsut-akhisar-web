@@ -101,7 +101,7 @@ class JobApplicationService
             throw $exception;
         }
     }
-            /**
+        /**
          * Update job application status.
          */
         public function updateStatus(

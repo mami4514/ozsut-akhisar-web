@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+
+import ApplicationStatusCard from "@/components/career/ApplicationStatusCard";
 import ApplicationAbout from "@/components/career/ApplicationAbout";
 import ApplicationExperience from "@/components/career/ApplicationExperience";
 import ApplicationHeader from "@/components/career/ApplicationHeader";
@@ -27,6 +29,8 @@ export default function CareerDetailPage() {
     let isCancelled = false;
 
     async function loadApplication() {
+      setLoading(true);
+
       try {
         const data = await getJobApplication(id);
 
@@ -47,12 +51,21 @@ export default function CareerDetailPage() {
 
     if (!Number.isNaN(id)) {
       void loadApplication();
+    } else {
+      setError("Geçersiz başvuru numarası.");
+      setLoading(false);
     }
 
     return () => {
       isCancelled = true;
     };
   }, [id]);
+
+  function handleApplicationUpdated(
+    updatedApplication: JobApplicationDetail
+  ) {
+    setApplication(updatedApplication);
+  }
 
   if (loading) {
     return (
@@ -95,6 +108,7 @@ export default function CareerDetailPage() {
           kvkkApproved={application.kvkk_approved}
         />
       </div>
+
       <ApplicationExperience
         experience={application.experience}
         educationLevel={application.education_level}
@@ -104,8 +118,14 @@ export default function CareerDetailPage() {
         smoker={application.smoker}
         shiftAvailable={application.shift_available}
       />
-      <ApplicationAbout
-        about={application.about}
+
+      <ApplicationAbout about={application.about} />
+
+      <ApplicationStatusCard
+        applicationId={application.id}
+        initialStatus={application.status}
+        initialAdminNote={application.admin_note}
+        onUpdated={handleApplicationUpdated}
       />
     </div>
   );

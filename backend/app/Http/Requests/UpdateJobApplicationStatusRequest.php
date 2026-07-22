@@ -37,7 +37,7 @@ class UpdateJobApplicationStatusRequest extends FormRequest
             'admin_note' => [
                 'nullable',
                 'string',
-                'max:1000',
+                'max:500',
             ],
         ];
     }
@@ -52,7 +52,7 @@ class UpdateJobApplicationStatusRequest extends FormRequest
             'status.in' => 'Geçersiz başvuru durumu.',
 
             'admin_note.string' => 'Yönetici notu metin olmalıdır.',
-            'admin_note.max' => 'Yönetici notu en fazla 1000 karakter olabilir.',
+            'admin_note.max' => 'Yönetici notu en fazla 500 karakter olabilir.',
         ];
     }
 }
