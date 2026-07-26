@@ -50,7 +50,9 @@ class JobApplicationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => new JobApplicationDetailResource($jobApplication),
+                'data' => new JobApplicationDetailResource(
+                    $jobApplication
+                ),
             ]);
         } catch (Throwable $exception) {
             report($exception);
@@ -75,14 +77,14 @@ class JobApplicationController extends Controller
                 ipAddress: $request->ip(),
             );
 
+            $jobApplication->load('position');
+
             return response()->json([
                 'success' => true,
                 'message' => 'Başvurunuz başarıyla alınmıştır.',
-                'data' => [
-                    'id' => $jobApplication->id,
-                    'status' => $jobApplication->status,
-                    'applied_at' => $jobApplication->applied_at,
-                ],
+                'data' => new JobApplicationResource(
+                    $jobApplication
+                ),
             ], 201);
         } catch (Throwable $exception) {
             report($exception);
@@ -113,14 +115,17 @@ class JobApplicationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Başvuru durumu başarıyla güncellendi.',
-                'data' => new JobApplicationDetailResource($jobApplication),
+                'data' => new JobApplicationDetailResource(
+                    $jobApplication
+                ),
             ]);
         } catch (Throwable $exception) {
             report($exception);
 
             return response()->json([
                 'success' => false,
-                'message' => 'İş başvurusu bulunamadı veya güncellenemedi.',
+                'message' =>
+                    'İş başvurusu bulunamadı veya güncellenemedi.',
             ], 404);
         }
     }

@@ -26,46 +26,50 @@ export default function CareerDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isCancelled = false;
+  if (Number.isNaN(id)) {
+    return;
+  }
 
-    async function loadApplication() {
-      setLoading(true);
+  let isCancelled = false;
 
-      try {
-        const data = await getJobApplication(id);
+  async function loadApplication() {
+    try {
+      const data = await getJobApplication(id);
 
-        if (!isCancelled) {
-          setApplication(data);
-          setError(null);
-        }
-      } catch {
-        if (!isCancelled) {
-          setError("Başvuru bilgileri alınamadı.");
-        }
-      } finally {
-        if (!isCancelled) {
-          setLoading(false);
-        }
+      if (!isCancelled) {
+        setApplication(data);
+        setError(null);
+      }
+    } catch {
+      if (!isCancelled) {
+        setError("Başvuru bilgileri alınamadı.");
+      }
+    } finally {
+      if (!isCancelled) {
+        setLoading(false);
       }
     }
+  }
 
-    if (!Number.isNaN(id)) {
-      void loadApplication();
-    } else {
-      setError("Geçersiz başvuru numarası.");
-      setLoading(false);
-    }
+  void loadApplication();
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [id]);
+  return () => {
+    isCancelled = true;
+  };
+}, [id]);
 
   function handleApplicationUpdated(
     updatedApplication: JobApplicationDetail
   ) {
     setApplication(updatedApplication);
   }
+  if (Number.isNaN(id)) {
+  return (
+    <div className="py-12 text-center text-destructive">
+      Geçersiz başvuru numarası.
+    </div>
+  );
+}
 
   if (loading) {
     return (
@@ -125,6 +129,7 @@ export default function CareerDetailPage() {
         applicationId={application.id}
         initialStatus={application.status}
         initialAdminNote={application.admin_note}
+        initialUpdatedAt={application.updated_at}
         onUpdated={handleApplicationUpdated}
       />
     </div>

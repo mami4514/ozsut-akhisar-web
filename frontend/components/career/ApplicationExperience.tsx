@@ -1,5 +1,5 @@
 interface ApplicationExperienceProps {
-  experience: string | null;
+  experience: number | null;
   educationLevel: string | null;
   employmentType: string | null;
   militaryStatus: string | null;

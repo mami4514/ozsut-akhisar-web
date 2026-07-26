@@ -91,7 +91,9 @@ class JobApplicationService
                 $applicationData['ip_address'] = $ipAddress;
                 $applicationData['applied_at'] = now();
 
-                return JobApplication::create($applicationData);
+                $jobApplication = JobApplication::create($applicationData);
+
+                return $jobApplication->load('position');
             });
         } catch (Throwable $exception) {
             if ($cvPath !== null) {

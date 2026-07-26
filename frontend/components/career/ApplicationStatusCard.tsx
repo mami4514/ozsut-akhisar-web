@@ -1,7 +1,7 @@
 "use client";
 
-import { Save } from "lucide-react";
-import { useState } from "react";
+import { FileText, Save } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import {
   updateJobApplicationStatus,
@@ -12,6 +12,7 @@ interface ApplicationStatusCardProps {
   applicationId: number;
   initialStatus: string;
   initialAdminNote: string | null;
+  initialUpdatedAt: string;
   onUpdated: (application: JobApplicationDetail) => void;
 }
 
@@ -38,17 +39,44 @@ const statusOptions = [
   },
 ];
 
+function formatDate(date: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date(date));
+}
+
 export default function ApplicationStatusCard({
   applicationId,
   initialStatus,
   initialAdminNote,
+  initialUpdatedAt,
   onUpdated,
 }: ApplicationStatusCardProps) {
   const [status, setStatus] = useState(initialStatus);
   const [adminNote, setAdminNote] = useState(initialAdminNote ?? "");
+  const [savedAdminNote, setSavedAdminNote] = useState(
+    initialAdminNote ?? ""
+  );
+  const [savedUpdatedAt, setSavedUpdatedAt] = useState(initialUpdatedAt);
+
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!successMessage) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [successMessage]);
 
   async function handleSave() {
     setIsSaving(true);
@@ -66,10 +94,14 @@ export default function ApplicationStatusCard({
 
       setStatus(updatedApplication.status);
       setAdminNote(updatedApplication.admin_note ?? "");
+      setSavedAdminNote(updatedApplication.admin_note ?? "");
+      setSavedUpdatedAt(updatedApplication.updated_at);
 
       onUpdated(updatedApplication);
 
-      setSuccessMessage("Başvuru değerlendirmesi başarıyla kaydedildi.");
+      setSuccessMessage(
+        "Başvuru değerlendirmesi başarıyla kaydedildi."
+      );
     } catch (error) {
       console.error("Başvuru durumu güncellenemedi:", error);
 
@@ -84,7 +116,9 @@ export default function ApplicationStatusCard({
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">Başvuru Değerlendirme</h2>
+        <h2 className="text-lg font-semibold">
+          Başvuru Değerlendirme
+        </h2>
 
         <p className="mt-1 text-sm text-muted-foreground">
           Başvurunun durumunu güncelleyin ve değerlendirme notunuzu ekleyin.
@@ -180,6 +214,30 @@ export default function ApplicationStatusCard({
 
             {isSaving ? "Kaydediliyor..." : "Kaydet"}
           </button>
+        </div>
+
+        <div className="rounded-lg border bg-muted/20 p-4">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+
+            <h3 className="text-sm font-semibold">
+              Son Kaydedilen Yönetici Notu
+            </h3>
+          </div>
+
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">
+            {savedAdminNote.trim() || "Henüz yönetici notu bulunmuyor."}
+          </p>
+
+          <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-muted-foreground">
+              Son güncelleme
+            </p>
+
+            <p className="mt-1 text-xs font-medium">
+              {formatDate(savedUpdatedAt)}
+            </p>
+          </div>
         </div>
       </div>
     </section>
