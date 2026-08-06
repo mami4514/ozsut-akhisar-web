@@ -55,6 +55,34 @@ export interface JobApplicationDetail {
   updated_at: string;
 }
 
+export interface JobApplicationListItem {
+  id: number;
+  full_name: string;
+  position: JobApplicationPosition | null;
+  phone: string;
+  email: string;
+  status: string;
+  applied_at: string;
+}
+
+export interface JobApplicationPaginationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
+export interface JobApplicationListResult {
+  applications: JobApplicationListItem[];
+  meta: JobApplicationPaginationMeta;
+}
+
+export interface GetJobApplicationsParams {
+  page?: number;
+  search?: string;
+  status?: string;
+}
+
 export interface CreateJobApplicationPayload {
   position_id: number;
   first_name: string;
@@ -108,6 +136,12 @@ interface JobApplicationDetailResponse {
   data: JobApplicationDetail;
 }
 
+interface JobApplicationListResponse {
+  success: boolean;
+  data: JobApplicationListItem[];
+  meta: JobApplicationPaginationMeta;
+}
+
 interface CreateJobApplicationResponse {
   success: boolean;
   message: string;
@@ -132,6 +166,14 @@ function appendOptionalField(
   }
 }
 
+function getAccessToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return localStorage.getItem("access_token");
+}
+
 export async function createJobApplication(
   payload: CreateJobApplicationPayload
 ): Promise<CreatedJobApplication> {
@@ -146,29 +188,35 @@ export async function createJobApplication(
   formData.append("experience", String(payload.experience));
   formData.append("education_level", payload.education_level);
   formData.append("employment_type", payload.employment_type);
+
   formData.append(
     "shift_available",
     payload.shift_available ? "1" : "0"
   );
+
   formData.append(
     "kvkk_approved",
     payload.kvkk_approved ? "1" : "0"
   );
+
   formData.append("cv", payload.cv);
 
   appendOptionalField(formData, "gender", payload.gender);
   appendOptionalField(formData, "birth_date", payload.birth_date);
   appendOptionalField(formData, "district", payload.district);
+
   appendOptionalField(
     formData,
     "military_status",
     payload.military_status
   );
+
   appendOptionalField(
     formData,
     "driver_license",
     payload.driver_license
   );
+
   appendOptionalField(formData, "about", payload.about);
 
   if (payload.smoker !== undefined) {
@@ -188,10 +236,35 @@ export async function createJobApplication(
   return response.data.data;
 }
 
+export async function getJobApplications(
+  params: GetJobApplicationsParams = {}
+): Promise<JobApplicationListResult> {
+  const token = getAccessToken();
+
+  const response = await api.get<JobApplicationListResponse>(
+    "/job-applications",
+    {
+      params: {
+        page: params.page ?? 1,
+        search: params.search?.trim() || undefined,
+        status: params.status || undefined,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return {
+    applications: response.data.data,
+    meta: response.data.meta,
+  };
+}
+
 export async function getJobApplication(
   id: number
 ): Promise<JobApplicationDetail> {
-  const token = localStorage.getItem("access_token");
+  const token = getAccessToken();
 
   const response = await api.get<JobApplicationDetailResponse>(
     `/job-applications/${id}`,
@@ -209,17 +282,18 @@ export async function updateJobApplicationStatus(
   id: number,
   payload: UpdateJobApplicationStatusPayload
 ): Promise<JobApplicationDetail> {
-  const token = localStorage.getItem("access_token");
+  const token = getAccessToken();
 
-  const response = await api.patch<UpdateJobApplicationStatusResponse>(
-    `/job-applications/${id}/status`,
-    payload,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response =
+    await api.patch<UpdateJobApplicationStatusResponse>(
+      `/job-applications/${id}/status`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
   return response.data.data;
 }
