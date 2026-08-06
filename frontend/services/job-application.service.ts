@@ -81,6 +81,7 @@ export interface GetJobApplicationsParams {
   page?: number;
   search?: string;
   status?: string;
+  positionId?: string;
 }
 
 export interface CreateJobApplicationPayload {
@@ -248,6 +249,7 @@ export async function getJobApplications(
         page: params.page ?? 1,
         search: params.search?.trim() || undefined,
         status: params.status || undefined,
+        position_id: params.positionId || undefined,
       },
       headers: {
         Authorization: `Bearer ${token}`,

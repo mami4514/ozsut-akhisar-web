@@ -12,6 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 import {
+  type ChangeEvent,
   useEffect,
   useMemo,
   useState,
@@ -31,6 +32,10 @@ import {
   type JobApplicationListItem,
   type JobApplicationPaginationMeta,
 } from "@/services/job-application.service";
+import {
+  getPositions,
+  type Position,
+} from "@/services/position.service";
 
 const statusOptions = [
   {
@@ -114,6 +119,8 @@ export default function CareerApplicationsPage() {
     JobApplicationListItem[]
   >([]);
 
+  const [positions, setPositions] = useState<Position[]>([]);
+
   const [meta, setMeta] =
     useState<JobApplicationPaginationMeta>(emptyMeta);
 
@@ -122,10 +129,17 @@ export default function CareerApplicationsPage() {
     useState("");
 
   const [status, setStatus] = useState("");
+  const [positionId, setPositionId] = useState("");
   const [page, setPage] = useState(1);
 
   const [loading, setLoading] = useState(true);
+  const [positionsLoading, setPositionsLoading] =
+    useState(true);
+
   const [error, setError] =
+    useState<string | null>(null);
+
+  const [positionsError, setPositionsError] =
     useState<string | null>(null);
 
   useEffect(() => {
@@ -142,6 +156,40 @@ export default function CareerApplicationsPage() {
   useEffect(() => {
     let isCancelled = false;
 
+    async function loadPositions() {
+      setPositionsLoading(true);
+      setPositionsError(null);
+
+      try {
+        const result = await getPositions();
+
+        if (!isCancelled) {
+          setPositions(result);
+        }
+      } catch {
+        if (!isCancelled) {
+          setPositions([]);
+          setPositionsError(
+            "Pozisyonlar yüklenirken bir hata oluştu."
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setPositionsLoading(false);
+        }
+      }
+    }
+
+    void loadPositions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
     async function loadApplications() {
       setLoading(true);
       setError(null);
@@ -151,6 +199,7 @@ export default function CareerApplicationsPage() {
           page,
           search: debouncedSearch,
           status,
+          positionId,
         });
 
         if (!isCancelled) {
@@ -178,7 +227,12 @@ export default function CareerApplicationsPage() {
     return () => {
       isCancelled = true;
     };
-  }, [debouncedSearch, page, status]);
+  }, [
+    debouncedSearch,
+    page,
+    status,
+    positionId,
+  ]);
 
   const resultText = useMemo(() => {
     if (loading) {
@@ -193,9 +247,16 @@ export default function CareerApplicationsPage() {
   }, [loading, meta.total]);
 
   function handleStatusChange(
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: ChangeEvent<HTMLSelectElement>
   ) {
     setStatus(event.target.value);
+    setPage(1);
+  }
+
+  function handlePositionChange(
+    event: ChangeEvent<HTMLSelectElement>
+  ) {
+    setPositionId(event.target.value);
     setPage(1);
   }
 
@@ -244,13 +305,13 @@ export default function CareerApplicationsPage() {
           <CardTitle>Başvuru Listesi</CardTitle>
 
           <CardDescription>
-            İsim, telefon, e-posta veya durum bilgisine göre
-            başvuruları filtreleyebilirsiniz.
+            İsim, telefon, e-posta, durum veya pozisyon
+            bilgisine göre başvuruları filtreleyebilirsiniz.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-[1fr_220px]">
+          <div className="grid gap-4 lg:grid-cols-[1fr_220px_220px]">
             <div>
               <label
                 htmlFor="application-search"
@@ -302,9 +363,47 @@ export default function CareerApplicationsPage() {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label
+                htmlFor="application-position"
+                className="sr-only"
+              >
+                Pozisyona göre filtrele
+              </label>
+
+              <select
+                id="application-position"
+                value={positionId}
+                onChange={handlePositionChange}
+                disabled={positionsLoading}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">
+                  {positionsLoading
+                    ? "Pozisyonlar yükleniyor..."
+                    : "Tüm pozisyonlar"}
+                </option>
+
+                {positions.map((position) => (
+                  <option
+                    key={position.id}
+                    value={String(position.id)}
+                  >
+                    {position.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between border-b pb-4">
+          {positionsError && (
+            <p className="mt-3 text-sm text-destructive">
+              {positionsError}
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {resultText}
             </p>
@@ -350,8 +449,8 @@ export default function CareerApplicationsPage() {
               </p>
 
               <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                Arama veya durum filtresini değiştirerek
-                tekrar deneyin.
+                Arama, durum veya pozisyon filtresini
+                değiştirerek tekrar deneyin.
               </p>
             </div>
           ) : (
