@@ -20,7 +20,7 @@ class JobApplicationController extends Controller
     }
 
     /**
-     * İş başvurularını listele.
+     * Aktif iş başvurularını listele.
      */
     public function index(Request $request): JsonResponse
     {
@@ -29,7 +29,32 @@ class JobApplicationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => JobApplicationResource::collection($jobApplications),
+            'data' => JobApplicationResource::collection(
+                $jobApplications
+            ),
+            'meta' => [
+                'current_page' => $jobApplications->currentPage(),
+                'last_page' => $jobApplications->lastPage(),
+                'per_page' => $jobApplications->perPage(),
+                'total' => $jobApplications->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Arşivlenmiş iş başvurularını listele.
+     */
+    public function archiveIndex(
+        Request $request
+    ): JsonResponse {
+        $jobApplications = $this->jobApplicationService
+            ->getArchivedPaginated($request);
+
+        return response()->json([
+            'success' => true,
+            'data' => JobApplicationResource::collection(
+                $jobApplications
+            ),
             'meta' => [
                 'current_page' => $jobApplications->currentPage(),
                 'last_page' => $jobApplications->lastPage(),
@@ -91,7 +116,8 @@ class JobApplicationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Başvuru kaydedilirken bir hata oluştu.',
+                'message' =>
+                    'Başvuru kaydedilirken bir hata oluştu.',
             ], 500);
         }
     }
@@ -106,15 +132,18 @@ class JobApplicationController extends Controller
         try {
             $validated = $request->validated();
 
-            $jobApplication = $this->jobApplicationService->updateStatus(
-                id: $id,
-                status: $validated['status'],
-                adminNote: $validated['admin_note'] ?? null,
-            );
+            $jobApplication =
+                $this->jobApplicationService->updateStatus(
+                    id: $id,
+                    status: $validated['status'],
+                    adminNote:
+                        $validated['admin_note'] ?? null,
+                );
 
             return response()->json([
                 'success' => true,
-                'message' => 'Başvuru durumu başarıyla güncellendi.',
+                'message' =>
+                    'Başvuru durumu başarıyla güncellendi.',
                 'data' => new JobApplicationDetailResource(
                     $jobApplication
                 ),
@@ -126,6 +155,82 @@ class JobApplicationController extends Controller
                 'success' => false,
                 'message' =>
                     'İş başvurusu bulunamadı veya güncellenemedi.',
+            ], 404);
+        }
+    }
+
+    /**
+     * İş başvurusunu arşivle.
+     */
+    public function archive(int $id): JsonResponse
+    {
+        try {
+            $this->jobApplicationService->archive($id);
+
+            return response()->json([
+                'success' => true,
+                'message' =>
+                    'İş başvurusu başarıyla arşivlendi.',
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' =>
+                    'İş başvurusu bulunamadı veya arşivlenemedi.',
+            ], 404);
+        }
+    }
+
+    /**
+     * Arşivlenmiş iş başvurusunu geri yükle.
+     */
+    public function restore(int $id): JsonResponse
+    {
+        try {
+            $jobApplication =
+                $this->jobApplicationService->restore($id);
+
+            return response()->json([
+                'success' => true,
+                'message' =>
+                    'İş başvurusu başarıyla geri yüklendi.',
+                'data' => new JobApplicationDetailResource(
+                    $jobApplication
+                ),
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' =>
+                    'Arşivlenmiş iş başvurusu bulunamadı.',
+            ], 404);
+        }
+    }
+
+    /**
+     * Arşivlenmiş iş başvurusunu kalıcı sil.
+     */
+    public function forceDelete(int $id): JsonResponse
+    {
+        try {
+            $this->jobApplicationService->forceDelete($id);
+
+            return response()->json([
+                'success' => true,
+                'message' =>
+                    'İş başvurusu kalıcı olarak silindi.',
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' =>
+                    'Arşivlenmiş iş başvurusu bulunamadı veya silinemedi.',
             ], 404);
         }
     }

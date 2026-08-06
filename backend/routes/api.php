@@ -16,7 +16,11 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::post('/logout', [
+        AuthController::class,
+        'logout',
+    ]);
 
     /*
     |--------------------------------------------------------------------------
@@ -24,7 +28,10 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [
+        DashboardController::class,
+        'index',
+    ]);
 });
 
 /*
@@ -33,7 +40,10 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/positions', [PositionController::class, 'index']);
+Route::get('/positions', [
+    PositionController::class,
+    'index',
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -41,10 +51,10 @@ Route::get('/positions', [PositionController::class, 'index']);
 |--------------------------------------------------------------------------
 */
 
-Route::post(
-    '/job-applications',
-    [JobApplicationController::class, 'store']
-);
+Route::post('/job-applications', [
+    JobApplicationController::class,
+    'store',
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -55,12 +65,38 @@ Route::post(
 Route::middleware('auth:sanctum')
     ->prefix('job-applications')
     ->group(function () {
-        Route::get('/', [JobApplicationController::class, 'index']);
+        Route::get('/', [
+            JobApplicationController::class,
+            'index',
+        ]);
 
-        Route::get('/{id}', [JobApplicationController::class, 'show']);
+        Route::get('/archive', [
+            JobApplicationController::class,
+            'archiveIndex',
+        ]);
 
-        Route::patch(
-            '/{id}/status',
-            [JobApplicationController::class, 'updateStatus']
-        );
+        Route::get('/{id}', [
+            JobApplicationController::class,
+            'show',
+        ]);
+
+        Route::patch('/{id}/status', [
+            JobApplicationController::class,
+            'updateStatus',
+        ]);
+
+        Route::patch('/{id}/archive', [
+            JobApplicationController::class,
+            'archive',
+        ]);
+
+        Route::patch('/{id}/restore', [
+            JobApplicationController::class,
+            'restore',
+        ]);
+
+        Route::delete('/{id}', [
+            JobApplicationController::class,
+            'forceDelete',
+        ]);
     });

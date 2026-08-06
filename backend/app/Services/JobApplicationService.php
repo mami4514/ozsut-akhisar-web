@@ -13,11 +13,15 @@ use Throwable;
 class JobApplicationService
 {
     /**
-     * İş başvurularını arama, filtreleme ve sayfalama ile getirir.
+     * Aktif iş başvurularını arama, filtreleme ve sayfalama ile getirir.
      */
-    public function getPaginated(Request $request): LengthAwarePaginator
-    {
-        $search = trim((string) $request->query('search', ''));
+    public function getPaginated(
+        Request $request
+    ): LengthAwarePaginator {
+        $search = trim(
+            (string) $request->query('search', '')
+        );
+
         $status = $request->query('status');
         $positionId = $request->query('position_id');
 
@@ -26,22 +30,46 @@ class JobApplicationService
             ->when(
                 $search !== '',
                 function ($query) use ($search): void {
-                    $query->where(function ($subQuery) use ($search): void {
-                        $subQuery
-                            ->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%")
-                            ->orWhere('phone', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
+                    $query->where(
+                        function ($subQuery) use ($search): void {
+                            $subQuery
+                                ->where(
+                                    'first_name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'last_name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'phone',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'email',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                        }
+                    );
                 }
             )
             ->when(
                 filled($status),
-                fn ($query) => $query->where('status', $status)
+                fn ($query) => $query->where(
+                    'status',
+                    $status
+                )
             )
             ->when(
                 filled($positionId),
-                fn ($query) => $query->where('position_id', $positionId)
+                fn ($query) => $query->where(
+                    'position_id',
+                    $positionId
+                )
             )
             ->latest('applied_at')
             ->paginate(10)
@@ -49,7 +77,71 @@ class JobApplicationService
     }
 
     /**
-     * ID'ye göre iş başvurusunu getirir.
+     * Arşivlenmiş iş başvurularını arama, filtreleme ve sayfalama ile getirir.
+     */
+    public function getArchivedPaginated(
+        Request $request
+    ): LengthAwarePaginator {
+        $search = trim(
+            (string) $request->query('search', '')
+        );
+
+        $status = $request->query('status');
+        $positionId = $request->query('position_id');
+
+        return JobApplication::onlyTrashed()
+            ->with('position')
+            ->when(
+                $search !== '',
+                function ($query) use ($search): void {
+                    $query->where(
+                        function ($subQuery) use ($search): void {
+                            $subQuery
+                                ->where(
+                                    'first_name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'last_name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'phone',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'email',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                        }
+                    );
+                }
+            )
+            ->when(
+                filled($status),
+                fn ($query) => $query->where(
+                    'status',
+                    $status
+                )
+            )
+            ->when(
+                filled($positionId),
+                fn ($query) => $query->where(
+                    'position_id',
+                    $positionId
+                )
+            )
+            ->latest('deleted_at')
+            ->paginate(10)
+            ->withQueryString();
+    }
+
+    /**
+     * ID'ye göre aktif iş başvurusunu getirir.
      */
     public function findById(int $id): JobApplication
     {
@@ -91,7 +183,9 @@ class JobApplicationService
                 $applicationData['ip_address'] = $ipAddress;
                 $applicationData['applied_at'] = now();
 
-                $jobApplication = JobApplication::create($applicationData);
+                $jobApplication = JobApplication::create(
+                    $applicationData
+                );
 
                 return $jobApplication->load('position');
             });
@@ -103,21 +197,72 @@ class JobApplicationService
             throw $exception;
         }
     }
-        /**
-         * Update job application status.
-         */
-        public function updateStatus(
-            int $id,
-            string $status,
-            ?string $adminNote = null
-        ): JobApplication {
-            $jobApplication = JobApplication::query()->findOrFail($id);
 
-            $jobApplication->update([
-                'status' => $status,
-                'admin_note' => $adminNote,
-            ]);
+    /**
+     * İş başvurusu durumunu günceller.
+     */
+    public function updateStatus(
+        int $id,
+        string $status,
+        ?string $adminNote = null
+    ): JobApplication {
+        $jobApplication = JobApplication::query()
+            ->findOrFail($id);
 
-            return $jobApplication->fresh(['position']);
+        $jobApplication->update([
+            'status' => $status,
+            'admin_note' => $adminNote,
+        ]);
+
+        return $jobApplication->fresh(['position']);
+    }
+
+    /**
+     * İş başvurusunu arşivler.
+     */
+    public function archive(int $id): JobApplication
+    {
+        $jobApplication = JobApplication::query()
+            ->with('position')
+            ->findOrFail($id);
+
+        $jobApplication->delete();
+
+        return $jobApplication;
+    }
+
+    /**
+     * Arşivlenmiş iş başvurusunu geri yükler.
+     */
+    public function restore(int $id): JobApplication
+    {
+        $jobApplication = JobApplication::onlyTrashed()
+            ->with('position')
+            ->findOrFail($id);
+
+        $jobApplication->restore();
+
+        return $jobApplication->fresh(['position']);
+    }
+
+    /**
+     * Arşivlenmiş iş başvurusunu ve CV dosyasını kalıcı siler.
+     */
+    public function forceDelete(int $id): void
+    {
+        $jobApplication = JobApplication::onlyTrashed()
+            ->findOrFail($id);
+
+        $cvPath = $jobApplication->cv_path;
+
+        DB::transaction(function () use (
+            $jobApplication
+        ): void {
+            $jobApplication->forceDelete();
+        });
+
+        if ($cvPath) {
+            Storage::disk('public')->delete($cvPath);
         }
+    }
 }

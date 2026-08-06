@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JobApplication extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'position_id',
         'first_name',
@@ -42,6 +45,7 @@ class JobApplication extends Model
             'shift_available' => 'boolean',
             'kvkk_approved' => 'boolean',
             'applied_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 

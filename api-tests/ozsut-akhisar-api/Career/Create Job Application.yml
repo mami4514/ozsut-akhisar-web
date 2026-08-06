@@ -5,12 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://127.0.0.1:8000/api/dashboard
+  url: http://127.0.0.1:8000/api/job-applications/archive
   headers:
     - name: Accept
       value: application/json
-    - name: Authorization
-      value: Bearer 15|rCartMUT1QsdkEX884foly2OX75Hdqzb3SCeWd2g8f7cebc0
   body:
     type: json
     data: |-
@@ -18,7 +16,9 @@ http:
         "email": "admin@ozsut.com",
         "password": "12345678"
       }
-  auth: inherit
+  auth:
+    type: bearer
+    token: 50|48Ovd9AUTLsuBUrUS1sWh02JPzWJb6cFUMggOmve15647ced
 
 settings:
   encodeUrl: true

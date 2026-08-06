@@ -95,6 +95,7 @@ export interface CreateJobApplicationPayload {
   city: string;
   district?: string;
   experience: number;
+
   education_level:
     | "primary_school"
     | "middle_school"
@@ -103,12 +104,15 @@ export interface CreateJobApplicationPayload {
     | "bachelor_degree"
     | "master_degree"
     | "doctorate";
+
   employment_type: "full_time" | "part_time";
+
   military_status?:
     | "completed"
     | "deferred"
     | "exempt"
     | "not_completed";
+
   driver_license?: string;
   smoker?: boolean;
   shift_available: boolean;
@@ -155,6 +159,17 @@ interface UpdateJobApplicationStatusResponse {
   data: JobApplicationDetail;
 }
 
+interface JobApplicationActionResponse {
+  success: boolean;
+  message: string;
+}
+
+interface RestoreJobApplicationResponse {
+  success: boolean;
+  message: string;
+  data: JobApplicationDetail;
+}
+
 function appendOptionalField(
   formData: FormData,
   key: string,
@@ -173,6 +188,14 @@ function getAccessToken() {
   }
 
   return localStorage.getItem("access_token");
+}
+
+function getAuthHeaders() {
+  const token = getAccessToken();
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
 }
 
 export async function createJobApplication(
@@ -240,8 +263,6 @@ export async function createJobApplication(
 export async function getJobApplications(
   params: GetJobApplicationsParams = {}
 ): Promise<JobApplicationListResult> {
-  const token = getAccessToken();
-
   const response = await api.get<JobApplicationListResponse>(
     "/job-applications",
     {
@@ -251,9 +272,29 @@ export async function getJobApplications(
         status: params.status || undefined,
         position_id: params.positionId || undefined,
       },
-      headers: {
-        Authorization: `Bearer ${token}`,
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return {
+    applications: response.data.data,
+    meta: response.data.meta,
+  };
+}
+
+export async function getArchivedJobApplications(
+  params: GetJobApplicationsParams = {}
+): Promise<JobApplicationListResult> {
+  const response = await api.get<JobApplicationListResponse>(
+    "/job-applications/archive",
+    {
+      params: {
+        page: params.page ?? 1,
+        search: params.search?.trim() || undefined,
+        status: params.status || undefined,
+        position_id: params.positionId || undefined,
       },
+      headers: getAuthHeaders(),
     }
   );
 
@@ -266,14 +307,10 @@ export async function getJobApplications(
 export async function getJobApplication(
   id: number
 ): Promise<JobApplicationDetail> {
-  const token = getAccessToken();
-
   const response = await api.get<JobApplicationDetailResponse>(
     `/job-applications/${id}`,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     }
   );
 
@@ -284,18 +321,55 @@ export async function updateJobApplicationStatus(
   id: number,
   payload: UpdateJobApplicationStatusPayload
 ): Promise<JobApplicationDetail> {
-  const token = getAccessToken();
-
   const response =
     await api.patch<UpdateJobApplicationStatusResponse>(
       `/job-applications/${id}/status`,
       payload,
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       }
     );
 
   return response.data.data;
+}
+
+export async function archiveJobApplication(
+  id: number
+): Promise<string> {
+  const response = await api.patch<JobApplicationActionResponse>(
+    `/job-applications/${id}/archive`,
+    undefined,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return response.data.message;
+}
+
+export async function restoreJobApplication(
+  id: number
+): Promise<JobApplicationDetail> {
+  const response = await api.patch<RestoreJobApplicationResponse>(
+    `/job-applications/${id}/restore`,
+    undefined,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return response.data.data;
+}
+
+export async function forceDeleteJobApplication(
+  id: number
+): Promise<string> {
+  const response = await api.delete<JobApplicationActionResponse>(
+    `/job-applications/${id}`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return response.data.message;
 }
