@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateJobApplicationStatusRequest;
 use App\Http\Resources\JobApplicationDetailResource;
 use App\Http\Resources\JobApplicationResource;
 use App\Services\JobApplicationService;
+use App\Services\Security\TurnstileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -15,7 +16,8 @@ use Throwable;
 class JobApplicationController extends Controller
 {
     public function __construct(
-        private readonly JobApplicationService $jobApplicationService
+        private readonly JobApplicationService $jobApplicationService,
+        private readonly TurnstileService $turnstileService,
     ) {
     }
 
@@ -84,7 +86,8 @@ class JobApplicationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'İş başvurusu bulunamadı.',
+                'message' =>
+                    'İş başvurusu bulunamadı.',
             ], 404);
         }
     }
@@ -96,17 +99,61 @@ class JobApplicationController extends Controller
         StoreJobApplicationRequest $request
     ): JsonResponse {
         try {
-            $jobApplication = $this->jobApplicationService->create(
-                data: $request->validated(),
-                cv: $request->file('cv'),
+            /*
+             * Aynı e-posta veya telefon numarası ile
+             * son 24 saat içinde tekrar başvuru yapılmasını
+             * engelliyoruz.
+             */
+            $hasRecentApplication =
+                $this->jobApplicationService
+                    ->hasRecentApplication(
+                        email: $request
+                            ->string('email')
+                            ->toString(),
+                        phone: $request
+                            ->string('phone')
+                            ->toString(),
+                    );
+
+            if ($hasRecentApplication) {
+                return response()->json([
+                    'success' => false,
+                    'message' =>
+                        'Bu e-posta adresi veya telefon numarası ile son 24 saat içerisinde bir başvuru yapılmıştır. Lütfen daha sonra tekrar deneyiniz.',
+                ], 409);
+            }
+
+            /*
+             * Cloudflare Turnstile doğrulaması.
+             */
+            $isVerified = $this->turnstileService->verify(
+                token: $request
+                    ->string('turnstile_token')
+                    ->toString(),
                 ipAddress: $request->ip(),
             );
+
+            if (!$isVerified) {
+                return response()->json([
+                    'success' => false,
+                    'message' =>
+                        'Robot doğrulaması başarısız. Lütfen tekrar deneyiniz.',
+                ], 403);
+            }
+
+            $jobApplication =
+                $this->jobApplicationService->create(
+                    data: $request->validated(),
+                    cv: $request->file('cv'),
+                    ipAddress: $request->ip(),
+                );
 
             $jobApplication->load('position');
 
             return response()->json([
                 'success' => true,
-                'message' => 'Başvurunuz başarıyla alınmıştır.',
+                'message' =>
+                    'Başvurunuz başarıyla alınmıştır.',
                 'data' => new JobApplicationResource(
                     $jobApplication
                 ),

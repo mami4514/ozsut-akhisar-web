@@ -156,6 +156,12 @@ class StoreJobApplicationRequest extends FormRequest
             'kvkk_approved' => [
                 'accepted',
             ],
+
+            'turnstile_token' => [
+                'required',
+                'string',
+                'max:2048',
+            ],
         ];
     }
 
@@ -167,57 +173,119 @@ class StoreJobApplicationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'position_id.required' => 'Başvurulan pozisyonu seçmelisiniz.',
-            'position_id.exists' => 'Seçilen pozisyon geçerli veya aktif değil.',
+            'position_id.required' =>
+                'Başvurulan pozisyonu seçmelisiniz.',
 
-            'first_name.required' => 'Ad alanı zorunludur.',
-            'first_name.min' => 'Ad en az 2 karakter olmalıdır.',
-            'first_name.max' => 'Ad en fazla 100 karakter olabilir.',
+            'position_id.exists' =>
+                'Seçilen pozisyon geçerli veya aktif değil.',
 
-            'last_name.required' => 'Soyad alanı zorunludur.',
-            'last_name.min' => 'Soyad en az 2 karakter olmalıdır.',
-            'last_name.max' => 'Soyad en fazla 100 karakter olabilir.',
+            'first_name.required' =>
+                'Ad alanı zorunludur.',
 
-            'phone.required' => 'Telefon numarası zorunludur.',
-            'phone.regex' => 'Geçerli bir telefon numarası giriniz.',
+            'first_name.min' =>
+                'Ad en az 2 karakter olmalıdır.',
 
-            'email.required' => 'E-posta adresi zorunludur.',
-            'email.email' => 'Geçerli bir e-posta adresi giriniz.',
+            'first_name.max' =>
+                'Ad en fazla 100 karakter olabilir.',
 
-            'gender.in' => 'Geçersiz cinsiyet seçimi.',
+            'last_name.required' =>
+                'Soyad alanı zorunludur.',
 
-            'birth_date.date' => 'Doğum tarihi geçerli bir tarih olmalıdır.',
-            'birth_date.before' => 'Doğum tarihi bugünden önce olmalıdır.',
-            'birth_date.after_or_equal' => 'Doğum tarihi 1940 yılından önce olamaz.',
+            'last_name.min' =>
+                'Soyad en az 2 karakter olmalıdır.',
 
-            'city.required' => 'Şehir alanı zorunludur.',
+            'last_name.max' =>
+                'Soyad en fazla 100 karakter olabilir.',
 
-            'experience.required' => 'Deneyim süresi zorunludur.',
-            'experience.integer' => 'Deneyim süresi tam sayı olmalıdır.',
-            'experience.min' => 'Deneyim süresi 0 yıldan küçük olamaz.',
-            'experience.max' => 'Deneyim süresi 60 yıldan büyük olamaz.',
+            'phone.required' =>
+                'Telefon numarası zorunludur.',
 
-            'education_level.required' => 'Eğitim durumunu seçmelisiniz.',
-            'education_level.in' => 'Geçersiz eğitim durumu seçimi.',
+            'phone.regex' =>
+                'Geçerli bir telefon numarası giriniz.',
 
-            'employment_type.required' => 'Çalışma şeklini seçmelisiniz.',
-            'employment_type.in' => 'Geçersiz çalışma şekli seçimi.',
+            'email.required' =>
+                'E-posta adresi zorunludur.',
 
-            'military_status.in' => 'Geçersiz askerlik durumu seçimi.',
+            'email.email' =>
+                'Geçerli bir e-posta adresi giriniz.',
 
-            'smoker.boolean' => 'Sigara kullanımı alanı doğru veya yanlış olmalıdır.',
+            'gender.in' =>
+                'Geçersiz cinsiyet seçimi.',
 
-            'shift_available.required' => 'Vardiyalı çalışma durumunu belirtmelisiniz.',
-            'shift_available.boolean' => 'Vardiyalı çalışma alanı doğru veya yanlış olmalıdır.',
+            'birth_date.date' =>
+                'Doğum tarihi geçerli bir tarih olmalıdır.',
 
-            'about.max' => 'Kendinizi tanıttığınız alan en fazla 2000 karakter olabilir.',
+            'birth_date.before' =>
+                'Doğum tarihi bugünden önce olmalıdır.',
 
-            'cv.required' => 'CV dosyası yüklemelisiniz.',
-            'cv.file' => 'Yüklenen CV geçerli bir dosya olmalıdır.',
-            'cv.mimes' => 'CV yalnızca PDF, DOC veya DOCX formatında olabilir.',
-            'cv.max' => 'CV dosyası en fazla 5 MB olabilir.',
+            'birth_date.after_or_equal' =>
+                'Doğum tarihi 1940 yılından önce olamaz.',
 
-            'kvkk_approved.accepted' => 'KVKK onayını kabul etmelisiniz.',
+            'city.required' =>
+                'Şehir alanı zorunludur.',
+
+            'experience.required' =>
+                'Deneyim süresi zorunludur.',
+
+            'experience.integer' =>
+                'Deneyim süresi tam sayı olmalıdır.',
+
+            'experience.min' =>
+                'Deneyim süresi 0 yıldan küçük olamaz.',
+
+            'experience.max' =>
+                'Deneyim süresi 60 yıldan büyük olamaz.',
+
+            'education_level.required' =>
+                'Eğitim durumunu seçmelisiniz.',
+
+            'education_level.in' =>
+                'Geçersiz eğitim durumu seçimi.',
+
+            'employment_type.required' =>
+                'Çalışma şeklini seçmelisiniz.',
+
+            'employment_type.in' =>
+                'Geçersiz çalışma şekli seçimi.',
+
+            'military_status.in' =>
+                'Geçersiz askerlik durumu seçimi.',
+
+            'smoker.boolean' =>
+                'Sigara kullanımı alanı doğru veya yanlış olmalıdır.',
+
+            'shift_available.required' =>
+                'Vardiyalı çalışma durumunu belirtmelisiniz.',
+
+            'shift_available.boolean' =>
+                'Vardiyalı çalışma alanı doğru veya yanlış olmalıdır.',
+
+            'about.max' =>
+                'Kendinizi tanıttığınız alan en fazla 2000 karakter olabilir.',
+
+            'cv.required' =>
+                'CV dosyası yüklemelisiniz.',
+
+            'cv.file' =>
+                'Yüklenen CV geçerli bir dosya olmalıdır.',
+
+            'cv.mimes' =>
+                'CV yalnızca PDF, DOC veya DOCX formatında olabilir.',
+
+            'cv.max' =>
+                'CV dosyası en fazla 5 MB olabilir.',
+
+            'kvkk_approved.accepted' =>
+                'KVKK onayını kabul etmelisiniz.',
+
+            'turnstile_token.required' =>
+                'Lütfen robot doğrulamasını tamamlayınız.',
+
+            'turnstile_token.string' =>
+                'Robot doğrulama verisi geçersiz.',
+
+            'turnstile_token.max' =>
+                'Robot doğrulama verisi geçersiz.',
         ];
     }
 
@@ -248,6 +316,7 @@ class StoreJobApplicationRequest extends FormRequest
             'about' => 'hakkınızda',
             'cv' => 'CV',
             'kvkk_approved' => 'KVKK onayı',
+            'turnstile_token' => 'robot doğrulaması',
         ];
     }
 }

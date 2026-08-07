@@ -77,7 +77,8 @@ class JobApplicationService
     }
 
     /**
-     * Arşivlenmiş iş başvurularını arama, filtreleme ve sayfalama ile getirir.
+     * Arşivlenmiş iş başvurularını arama,
+     * filtreleme ve sayfalama ile getirir.
      */
     public function getArchivedPaginated(
         Request $request
@@ -151,6 +152,43 @@ class JobApplicationService
     }
 
     /**
+     * Son 24 saat içerisinde aynı e-posta veya telefon
+     * numarası ile başvuru yapılıp yapılmadığını kontrol eder.
+     */
+    public function hasRecentApplication(
+        string $email,
+        string $phone
+    ): bool {
+        $normalizedEmail = mb_strtolower(
+            trim($email)
+        );
+
+        $normalizedPhone = trim($phone);
+
+        return JobApplication::query()
+            ->where(
+                'applied_at',
+                '>=',
+                now()->subHours(24)
+            )
+            ->where(function ($query) use (
+                $normalizedEmail,
+                $normalizedPhone
+            ): void {
+                $query
+                    ->whereRaw(
+                        'LOWER(email) = ?',
+                        [$normalizedEmail]
+                    )
+                    ->orWhere(
+                        'phone',
+                        $normalizedPhone
+                    );
+            })
+            ->exists();
+    }
+
+    /**
      * Yeni iş başvurusu oluşturur.
      *
      * @param array<string, mixed> $data
@@ -176,7 +214,20 @@ class JobApplicationService
 
                 $applicationData = $data;
 
-                unset($applicationData['cv']);
+                unset(
+                    $applicationData['cv'],
+                    $applicationData['turnstile_token']
+                );
+
+                $applicationData['email'] = mb_strtolower(
+                    trim(
+                        (string) $applicationData['email']
+                    )
+                );
+
+                $applicationData['phone'] = trim(
+                    (string) $applicationData['phone']
+                );
 
                 $applicationData['cv_path'] = $cvPath;
                 $applicationData['status'] = 'new';
@@ -246,7 +297,8 @@ class JobApplicationService
     }
 
     /**
-     * Arşivlenmiş iş başvurusunu ve CV dosyasını kalıcı siler.
+     * Arşivlenmiş iş başvurusunu ve CV dosyasını
+     * kalıcı olarak siler.
      */
     public function forceDelete(int $id): void
     {

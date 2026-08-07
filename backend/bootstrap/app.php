@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,5 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+        $exceptions->render(
+            function (
+                TooManyRequestsHttpException $exception
+            ) {
+                return response()->json([
+                    'success' => false,
+                    'message' =>
+                        'Çok fazla başvuru gönderdiniz. Lütfen 10 dakika sonra tekrar deneyiniz.',
+                ], 429);
+            }
+        );
+    })
+    ->create();

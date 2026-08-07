@@ -119,6 +119,7 @@ export interface CreateJobApplicationPayload {
   about?: string;
   cv: File;
   kvkk_approved: boolean;
+  turnstile_token: string;
 }
 
 export interface CreatedJobApplication {
@@ -222,7 +223,11 @@ export async function createJobApplication(
     "kvkk_approved",
     payload.kvkk_approved ? "1" : "0"
   );
-
+  
+  formData.append(
+   "turnstile_token",
+   payload.turnstile_token
+ );
   formData.append("cv", payload.cv);
 
   appendOptionalField(formData, "gender", payload.gender);
