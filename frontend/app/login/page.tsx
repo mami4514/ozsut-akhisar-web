@@ -183,7 +183,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="admin@ozsut.com"
+                placeholder="E-posta adresinizi girin"
                 aria-invalid={Boolean(errors.email)}
                 disabled={isSubmitting}
                 {...register("email")}

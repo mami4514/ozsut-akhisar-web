@@ -2,77 +2,169 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Building2,
-  History,
-  Sparkles,
-} from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 
 import LightNavbar from "./LightNavbar";
 
-import {
-  buttonHover,
-  buttonTap,
-  easeOutExpo,
-  fadeUp,
-  staggerContainer,
-} from "@/lib/animations";
-
-const heroFeatures = [
-  {
-    label: "Modern Mimari",
-    icon: Building2,
-  },
-  {
-    label: "1938'den Gelen Lezzet",
-    icon: History,
-  },
-  {
-    label: "Sıcak Atmosfer",
-    icon: Sparkles,
-  },
-];
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function LightHeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#F8F5EF]">
-      <LightNavbar />
+    <section className="relative min-h-[100svh] overflow-hidden bg-[#F1E9DE]">
+      {/* TAM EKRAN MEKAN FOTOĞRAFI */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/ozsut-akhisar-hero.png"
+          alt="Özsüt Akhisar şubesi"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[62%_center] lg:object-center"
+        />
 
-      {/* Dekoratif arka plan şekilleri */}
-      <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-[#D6B17A]/15 blur-3xl" />
+        {/* Sıcak ivory geçiş */}
+        <div
+          className="
+            absolute inset-0
+            bg-gradient-to-r
+            from-[#F1E9DE]/95
+            via-[#F5EFE7]/72
+            to-transparent
+            lg:from-[#F1E9DE]/92
+            lg:via-[#F5EFE7]/48
+            lg:to-transparent
+          "
+        />
 
-      <div className="pointer-events-none absolute -right-32 bottom-10 h-[420px] w-[420px] rounded-full bg-[#E9DCCB]/70 blur-3xl" />
+        {/* Hafif sıcak ışık dokusu */}
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -left-32
+            top-[18%]
+            h-[520px]
+            w-[520px]
+            rounded-full
+            bg-[#D6B17A]/10
+            blur-[100px]
+          "
+        />
 
-      <div className="relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-14 px-6 pb-20 pt-40 lg:grid-cols-[0.88fr_1.12fr] lg:px-10 lg:pb-24 lg:pt-44">
-        {/* Sol içerik */}
+        {/* Navbar okunabilirliği */}
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#F1E9DE]/85 via-[#F1E9DE]/35 to-transparent" />
+
+        {/* Mobil alt kontrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#17130F]/30 via-transparent to-transparent lg:hidden" />
+      </div>
+
+      {/* NAVBAR */}
+      <div className="relative z-50">
+        <LightNavbar />
+      </div>
+
+      {/* HERO CONTENT */}
+      <div
+        className="
+          relative z-20
+          mx-auto
+          flex min-h-[100svh]
+          max-w-[1600px]
+          items-center
+          px-6
+          pb-8 pt-32
+          sm:px-10 sm:pb-10 sm:pt-36
+          lg:px-14 lg:pb-8 lg:pt-32
+          xl:px-20
+          2xl:px-24
+        "
+      >
         <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="max-w-2xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-[820px]"
         >
-          <motion.p
-            variants={fadeUp}
-            className="text-xs font-semibold uppercase tracking-[0.4em] text-[#B28A52] sm:text-sm"
+          {/* ÜST ETİKET */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: 0.1,
+              ease,
+            }}
+            className="mb-4 flex items-center gap-4 sm:mb-5"
           >
-            1938&apos;den Günümüze
-          </motion.p>
+            <span className="h-px w-10 bg-[#A57A45] sm:w-14" />
 
-          <h1 className="mt-7 text-4xl font-semibold leading-[1.04] tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
-            <span className="block overflow-hidden pb-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#86653F] sm:text-xs">
+              1938&apos;den Günümüze
+            </span>
+          </motion.div>
+
+          {/* ANA BAŞLIK */}
+          <h1
+            className="
+              max-w-[820px]
+              text-[2.65rem]
+              font-semibold
+              leading-[0.94]
+              tracking-[-0.055em]
+              text-[#211C17]
+              sm:text-[3.7rem]
+              lg:text-[4.2rem]
+              xl:text-[4.7rem]
+              2xl:text-[5.05rem]
+            "
+          >
+            <span className="block overflow-hidden pb-1 sm:pb-2">
               <motion.span
-                variants={fadeUp}
-                className="block text-[#2B241E]"
+                initial={{ y: "110%" }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.15,
+                  ease,
+                }}
+                className="block"
               >
-                Türkiye&apos;nin En Büyük
+                Türkiye&apos;nin
               </motion.span>
             </span>
 
-            <span className="block overflow-hidden pb-2">
+            <span className="block overflow-hidden pb-1 sm:pb-2">
               <motion.span
-                variants={fadeUp}
-                className="block text-[#B28A52]"
+                initial={{ y: "110%" }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.24,
+                  ease,
+                }}
+                className="block"
+              >
+                En Büyük
+              </motion.span>
+            </span>
+
+            {/* ÖZSÜT VURGUSU */}
+            <span className="block overflow-hidden pb-1 sm:pb-2">
+              <motion.span
+                initial={{ y: "110%" }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.33,
+                  ease,
+                }}
+                className="
+                  block
+                  font-semibold
+                  text-[#9A6B35]
+                  drop-shadow-[0_2px_12px_rgba(154,107,53,0.10)]
+                "
               >
                 Özsüt Şubesi
               </motion.span>
@@ -80,199 +172,189 @@ export default function LightHeroSection() {
 
             <span className="block overflow-hidden pb-2">
               <motion.span
-                variants={fadeUp}
-                className="block text-[#2B241E]"
+                initial={{ y: "110%" }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.42,
+                  ease,
+                }}
+                className="block"
               >
                 Akhisar&apos;da Açılıyor
               </motion.span>
             </span>
           </h1>
 
+          {/* AÇIKLAMA */}
           <motion.p
-            variants={fadeUp}
-            className="mt-7 max-w-xl text-base leading-8 text-[#6E6258] sm:text-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: 0.62,
+              ease,
+            }}
+            className="
+              mt-4
+              max-w-[570px]
+              text-[14px]
+              leading-6
+              text-[#5E554C]
+              sm:text-base sm:leading-7
+              lg:text-[17px] lg:leading-7
+            "
           >
-            Modern mimarisi, eşsiz lezzetleri ve güçlü ekibiyle Özsüt
-            Akhisar çok yakında misafirlerini ağırlamaya hazırlanıyor.
+            Özsüt&apos;ün 1938&apos;den gelen lezzet mirası, özgün mimarisi
+            ve yepyeni deneyimiyle Akhisar&apos;da hayat buluyor.
           </motion.p>
 
-          {/* Butonlar */}
+          {/* CTA BUTONLARI */}
           <motion.div
-            variants={fadeUp}
-            className="mt-9 flex flex-col gap-4 sm:flex-row"
-          >
-            <motion.div
-              whileHover={buttonHover}
-              whileTap={buttonTap}
-            >
-              <Link
-                href="/kariyer"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#2B241E] px-8 text-sm font-semibold text-white shadow-[0_14px_35px_rgba(43,36,30,0.18)] transition-colors duration-300 hover:bg-[#B28A52] sm:w-auto"
-              >
-                İş Başvurusu Yap
-              </Link>
-            </motion.div>
-
-            <motion.div
-              whileHover={buttonHover}
-              whileTap={buttonTap}
-            >
-              <a
-                href="#about"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[#D8CCBE] bg-white/60 px-8 text-sm font-semibold text-[#2B241E] shadow-[0_12px_35px_rgba(61,46,33,0.06)] backdrop-blur-sm transition-colors duration-300 hover:border-[#B28A52] hover:bg-white sm:w-auto"
-              >
-                Hikayemizi Keşfet
-              </a>
-            </motion.div>
-          </motion.div>
-
-          {/* Premium özellik satırı */}
-          <motion.div
-            variants={fadeUp}
-            className="mt-11 border-t border-[#DFD5C9] pt-7"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-4">
-              {heroFeatures.map((feature, index) => {
-                const Icon = feature.icon;
-
-                return (
-                  <motion.div
-                    key={feature.label}
-                    initial={{
-                      opacity: 0,
-                      x: -18,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                    }}
-                    transition={{
-                      duration: 0.65,
-                      delay: 1.2 + index * 0.16,
-                      ease: easeOutExpo,
-                    }}
-                    className="flex items-center gap-2.5 text-sm font-medium text-[#695D53]"
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#B28A52]/10 text-[#B28A52]">
-                      <Icon className="h-4 w-4" />
-                    </span>
-
-                    <span>{feature.label}</span>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Sağ görsel */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: 60,
-            scale: 0.96,
-            filter: "blur(10px)",
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            filter: "blur(0px)",
-          }}
-          transition={{
-            duration: 1.15,
-            delay: 0.35,
-            ease: easeOutExpo,
-          }}
-          className="relative pb-8"
-        >
-          <div className="pointer-events-none absolute -left-6 top-12 hidden h-36 w-36 rounded-full border border-[#B28A52]/30 lg:block" />
-
-          <div className="pointer-events-none absolute -bottom-2 -right-8 hidden h-56 w-56 rounded-full bg-[#E9DCCB] lg:block" />
-
-          <div className="relative overflow-hidden rounded-[2rem] border border-white bg-white p-3 shadow-[0_30px_80px_rgba(60,45,30,0.15)]">
-            <div className="relative min-h-[430px] overflow-hidden rounded-[1.5rem] sm:min-h-[520px] lg:min-h-[580px]">
-              {/* Ken Burns efekti */}
-              <motion.div
-                initial={{
-                  scale: 1.08,
-                }}
-                animate={{
-                  scale: 1,
-                }}
-                transition={{
-                  duration: 22,
-                  ease: "linear",
-                }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src="/images/store-front.jpg"
-                  alt="Özsüt Akhisar dış cephe görünümü"
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 55vw"
-                  className="object-cover"
-                />
-              </motion.div>
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: 24,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.8,
-                  delay: 1.15,
-                  ease: easeOutExpo,
-                }}
-                className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/75">
-                  Çok Yakında
-                </p>
-
-                <p className="mt-3 max-w-md text-2xl font-semibold leading-tight sm:text-3xl">
-                  Modern mimarisiyle Akhisar&apos;ın yeni buluşma noktası
-                </p>
-              </motion.div>
-            </div>
-          </div>
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 20,
-              scale: 0.96,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: 0.7,
-              delay: 1.35,
-              ease: easeOutExpo,
+              duration: 0.8,
+              delay: 0.75,
+              ease,
             }}
-            className="absolute bottom-0 left-6 rounded-2xl border border-white bg-white/95 px-5 py-4 shadow-xl backdrop-blur-md sm:left-10"
+            className="mt-5 flex flex-col gap-3 sm:flex-row"
           >
-            <p className="text-xs uppercase tracking-[0.25em] text-[#9A8B7F]">
-              Yeni Şube
-            </p>
+            <a
+              href="#about"
+              className="
+                group
+                inline-flex
+                min-h-12
+                items-center
+                justify-center
+                gap-3
+                rounded-full
+                bg-[#211C17]
+                px-7
+                text-sm
+                font-semibold
+                text-white
+                shadow-[0_18px_45px_rgba(33,28,23,0.18)]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-[#A87C46]
+                sm:min-h-13
+              "
+            >
+              Hikâyemizi Keşfet
 
-            <p className="mt-1 font-semibold text-[#2B241E]">
-              Akhisar / Manisa
-            </p>
+              <ArrowDown className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-1" />
+            </a>
+
+            <Link
+              href="/kariyer"
+              className="
+                group
+                inline-flex
+                min-h-12
+                items-center
+                justify-center
+                gap-3
+                rounded-full
+                border
+                border-[#B49E84]/70
+                bg-[#F4EDE4]/75
+                px-7
+                text-sm
+                font-semibold
+                text-[#211C17]
+                shadow-[0_8px_30px_rgba(69,51,33,0.05)]
+                backdrop-blur-md
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:border-[#A87C46]
+                hover:bg-[#F6F0E8]/95
+                sm:min-h-13
+              "
+            >
+              Kariyer Fırsatları
+
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+
+          {/* KONUM */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              duration: 1,
+              delay: 0.95,
+            }}
+            className="mt-5 flex flex-wrap items-center gap-4 sm:gap-5"
+          >
+            <span className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#77695C] sm:text-[10px]">
+              Akhisar
+            </span>
+
+            <span className="h-1 w-1 rounded-full bg-[#A87C46]" />
+
+            <span className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#77695C] sm:text-[10px]">
+              Manisa
+            </span>
+
+            <span className="h-1 w-1 rounded-full bg-[#A87C46]" />
+
+            <span className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#77695C] sm:text-[10px]">
+              Çok Yakında
+            </span>
           </motion.div>
         </motion.div>
       </div>
+
+      {/* SCROLL GÖSTERGESİ */}
+      <motion.a
+        href="#about"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.8,
+          delay: 1.2,
+        }}
+        className="
+          absolute
+          bottom-7
+          right-7
+          z-30
+          hidden
+          items-center
+          gap-4
+          lg:flex
+          xl:right-12
+        "
+      >
+        <span className="text-[9px] font-semibold uppercase tracking-[0.35em] text-white drop-shadow-md">
+          Keşfet
+        </span>
+
+        <span
+          className="
+            flex
+            h-11 w-11
+            items-center
+            justify-center
+            rounded-full
+            border border-white/40
+            bg-black/15
+            text-white
+            shadow-lg
+            backdrop-blur-md
+            transition-all
+            duration-300
+            hover:bg-black/30
+          "
+        >
+          <ArrowDown className="h-4 w-4" />
+        </span>
+      </motion.a>
     </section>
   );
 }

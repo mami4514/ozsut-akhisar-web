@@ -6,6 +6,7 @@ import LightSignatureSection from "@/components/landing-light/LightSignatureSect
 import LightStorySection from "@/components/landing-light/LightStorySection";
 import OpeningProgress from "@/components/landing-light/OpeningProgress";
 import ScrollProgress from "@/components/landing-light/ScrollProgress";
+import LightMissionVisionSection from "@/components/landing-light/LightMissionVisionSection";
 
 export default function LightPreviewPage() {
   return (
@@ -17,6 +18,7 @@ export default function LightPreviewPage() {
       <LightStorySection />
       <LightExperienceSection />
       <LightSignatureSection />
+      <LightMissionVisionSection />
       <LightCareerSection />
       <LightFooterSection />
     </main>

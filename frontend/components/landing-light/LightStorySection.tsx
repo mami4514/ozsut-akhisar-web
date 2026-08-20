@@ -3,255 +3,543 @@
 import Image from "next/image";
 import { motion } from "motion/react";
 
-const storyStats = [
+const ease = [0.16, 1, 0.3, 1] as const;
+
+const timeline = [
   {
-    value: "1938",
-    label: "İzmir’de başlayan yolculuk",
+    year: "1938",
+    title: "Bir lezzet mirasının başlangıcı",
+    description:
+      "Özsüt'ün İzmir'de başlayan yolculuğu; ustalık, kalite ve misafir memnuniyeti anlayışıyla büyüyerek Türkiye'nin en köklü lezzet markalarından birine dönüştü.",
   },
   {
-    value: "Akhisar",
-    label: "Yeni buluşma noktası",
+    year: "2021",
+    title: "Akhisar'da büyüyen işletmecilik deneyimi",
+    description:
+      "2021 yılında Manisa-Akhisar'da, İzmir-İstanbul Karayolu üzerinde hizmet veren Köfteci Hünkar'ın işletmesini devralan ekip; bölgenin misafirlerini, beklentilerini ve sofra kültürünü yakından tanıyarak güçlü bir yerel işletmecilik deneyimi oluşturdu.",
   },
   {
-    value: "Yeni Nesil",
-    label: "Modern şube deneyimi",
+    year: "2026",
+    title: "Özsüt Akhisar ile yeni bir dönem",
+    description:
+      "Yıllar içinde Akhisar'da kazanılan bu deneyim, bugün Özsüt'ün 1938'den gelen köklü marka mirasıyla buluşuyor. Yeni Özsüt Akhisar; özgün mimarisi, atmosferi, lezzetleri ve hizmet anlayışıyla şehrin yeni buluşma noktalarından biri olmaya hazırlanıyor.",
   },
 ];
 
-const textContainerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.14,
-      delayChildren: 0.12,
-    },
+const gallery = [
+  {
+    src: "/images/ozsut-story-detail-1.jpg",
+    label: "Ferah & Doğal Atmosfer",
   },
-};
+  {
+    src: "/images/ozsut-story-detail-2.jpg",
+    label: "Taptaze Lezzetler",
+  },
+  {
+    src: "/images/ozsut-story-detail-3.jpg",
+    label: "Açık Alanda Keyif",
+  },
+];
 
-const textItemVariants = {
-  hidden: {
-    opacity: 0,
-    y: 30,
-    filter: "blur(6px)",
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  },
-};
+/* =========================================================
+   MANIFESTO
+========================================================= */
+
+function ManifestoSection() {
+  const words = [
+    { text: "Geçmişten", accent: false },
+    { text: "gelen", accent: false },
+    { text: "miras.", accent: true },
+
+    { text: "Akhisar'da", accent: false },
+    { text: "kazanılan", accent: false },
+    { text: "deneyim.", accent: true },
+
+    { text: "Geleceğe", accent: false },
+    { text: "açılan", accent: false },
+    { text: "yeni", accent: true },
+    { text: "bir", accent: true },
+    { text: "kapı.", accent: true },
+  ];
+
+  return (
+    <div className="relative overflow-hidden bg-[#F4EDE4]">
+      {/* Arka plan ışığı */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[1000px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AE79]/10 blur-[130px]" />
+
+      <div className="relative mx-auto max-w-[1650px] px-6 py-16 sm:px-10 sm:py-20 lg:px-14 xl:px-20">
+        {/* Etiket */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 14,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+            amount: 0.6,
+          }}
+          transition={{
+            duration: 0.7,
+            ease,
+          }}
+          className="mb-7 text-center"
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-[0.38em] text-[#9A6B35] sm:text-xs">
+            Yeni Bir Dönem
+          </span>
+
+          <div className="mx-auto mt-4 h-px w-12 bg-[#B88A50]" />
+        </motion.div>
+
+        {/* Manifesto yazısı */}
+        <div className="flex flex-wrap justify-center gap-x-[0.22em] gap-y-2 text-center xl:flex-nowrap">
+          {words.map((word, index) => (
+            <motion.span
+              key={`${word.text}-${index}`}
+              initial={{
+                opacity: 0,
+                y: 22,
+                filter: "blur(5px)",
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+                filter: "blur(0px)",
+              }}
+              viewport={{
+                once: true,
+                amount: 0.75,
+              }}
+              transition={{
+                duration: 0.72,
+                delay: index * 0.065,
+                ease,
+              }}
+              className={`
+                inline-block
+                whitespace-nowrap
+                text-[1.45rem]
+                font-semibold
+                leading-tight
+                tracking-[-0.04em]
+                sm:text-[1.8rem]
+                lg:text-[1.9rem]
+                xl:text-[2.1rem]
+                2xl:text-[2.4rem]
+                ${
+                  word.accent
+                    ? "text-[#9A6B35]"
+                    : "text-[#2B241E]"
+                }
+              `}
+            >
+              {word.text}
+            </motion.span>
+          ))}
+        </div>
+
+        {/* 2026 */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 16,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            duration: 0.8,
+            delay: 1,
+            ease,
+          }}
+          className="mt-8 flex items-center justify-center gap-5"
+        >
+          <span className="h-px w-12 bg-[#C6A477]" />
+
+          <span className="text-xs font-semibold tracking-[0.55em] text-[#8E683B]">
+            2026
+          </span>
+
+          <span className="h-px w-12 bg-[#C6A477]" />
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   STORY
+========================================================= */
 
 export default function LightStorySection() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden bg-white py-24 sm:py-28 lg:py-32"
+      className="relative overflow-hidden bg-[#FCFAF7]"
     >
-      <div className="pointer-events-none absolute -left-40 top-16 h-[420px] w-[420px] rounded-full bg-[#D6B17A]/10 blur-3xl" />
+      {/* Arka plan dekorları */}
+      <div className="pointer-events-none absolute -left-40 top-24 h-[420px] w-[420px] rounded-full bg-[#D5B17D]/10 blur-[110px]" />
 
-      <div className="pointer-events-none absolute -right-40 bottom-10 h-[440px] w-[440px] rounded-full bg-[#F0E8DE] blur-3xl" />
+      <div className="pointer-events-none absolute -right-48 bottom-0 h-[500px] w-[500px] rounded-full bg-[#EEE1D1]/60 blur-[120px]" />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-16 px-6 lg:grid-cols-[1.08fr_0.92fr] lg:px-10">
-        {/* Görsel alanı */}
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: -56,
-            scale: 0.96,
-            filter: "blur(10px)",
-          }}
-          whileInView={{
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            filter: "blur(0px)",
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 1.05,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="relative pb-8"
+      <div className="relative mx-auto max-w-[1650px] px-6 py-20 sm:px-10 sm:py-24 lg:px-14 lg:py-28 xl:px-16 2xl:px-20">
+        {/* =====================================================
+            ANA GRID
+        ===================================================== */}
+
+        <div
+          className="
+            grid
+            gap-14
+            lg:grid-cols-[minmax(0,1.13fr)_minmax(360px,0.87fr)]
+            lg:items-start
+            lg:gap-14
+            xl:grid-cols-[minmax(0,1.17fr)_minmax(400px,0.83fr)]
+            xl:gap-16
+          "
         >
-          <div className="pointer-events-none absolute -left-7 -top-7 hidden h-32 w-32 rounded-full border border-[#B28A52]/30 lg:block" />
+          {/* ===================================================
+              SOL TARAF
+          =================================================== */}
 
-          <div className="pointer-events-none absolute -bottom-2 -right-8 hidden h-52 w-52 rounded-full bg-[#EFE5D8] lg:block" />
+          <div className="min-w-0">
+            {/* Başlık */}
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 24,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+                amount: 0.35,
+              }}
+              transition={{
+                duration: 0.85,
+                ease,
+              }}
+              className="mb-7"
+            >
+              {/* Hikayemiz */}
+              <div className="mb-5 flex items-center gap-4">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.36em] text-[#9A6B35] sm:text-xs">
+                  Hikâyemiz
+                </span>
 
-          <div className="relative overflow-hidden rounded-[2rem] border border-[#EEE5DC] bg-[#F8F5EF] p-3 shadow-[0_30px_80px_rgba(61,46,33,0.12)]">
-            <div className="relative min-h-[470px] overflow-hidden rounded-[1.5rem] sm:min-h-[580px]">
-              <Image
-                src="/images/ozsut-tarihce.jpeg"
-                alt="Özsüt Akhisar iç mekân görünümü"
-                fill
-                sizes="(max-width: 1024px) 100vw, 55vw"
-                className="object-cover transition duration-700 hover:scale-105"
-              />
+                <span className="h-px w-12 bg-[#9A6B35]" />
+              </div>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              {/* =================================================
+                  3 SATIR BAŞLIK
+              ================================================= */}
 
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: 28,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.4,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className="absolute inset-x-0 bottom-0 p-7 text-white sm:p-9"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#E4C795]">
-                  Köklü Bir Hikâye
-                </p>
+              <h2 className="font-semibold leading-[0.98] tracking-[-0.045em]">
+                {/* Satır 1 */}
+                <span
+                  className="
+                    block
+                    text-[2.55rem]
+                    text-[#241E19]
+                    sm:text-[3.15rem]
+                    lg:text-[clamp(3rem,3.5vw,4.05rem)]
+                  "
+                >
+                  Bir marka mirası,
+                </span>
 
-                <p className="mt-3 max-w-md text-2xl font-semibold leading-tight sm:text-3xl">
-                  Gelenekten gelen lezzet, modern bir mimariyle buluşuyor.
-                </p>
-              </motion.div>
-            </div>
+                {/* Satır 2 */}
+                <span
+                  className="
+                    mt-2
+                    block
+                    text-[2.05rem]
+                    text-[#A87339]
+                    sm:text-[2.6rem]
+                    lg:text-[clamp(2.45rem,3vw,3.45rem)]
+                  "
+                >
+                  Akhisar&apos;da yeni bir
+                </span>
+
+                {/* Satır 3 */}
+                <span
+                  className="
+                    mt-1
+                    block
+                    text-[2.05rem]
+                    text-[#A87339]
+                    sm:text-[2.6rem]
+                    lg:text-[clamp(2.45rem,3vw,3.45rem)]
+                  "
+                >
+                  hikâyeyle buluşuyor.
+                </span>
+              </h2>
+            </motion.div>
+
+            {/* =================================================
+                FOTOĞRAF + GALERİ
+            ================================================= */}
+
+            <motion.div
+              initial={{
+                opacity: 0,
+                x: -30,
+              }}
+              whileInView={{
+                opacity: 1,
+                x: 0,
+              }}
+              viewport={{
+                once: true,
+                amount: 0.15,
+              }}
+              transition={{
+                duration: 0.95,
+                ease,
+              }}
+              className="
+                overflow-hidden
+                rounded-[1.8rem]
+                bg-[#EDE5DB]
+                shadow-[0_28px_70px_rgba(57,43,31,0.11)]
+              "
+            >
+              {/* =================================================
+                  ANA FOTOĞRAF
+
+                  ÖNEMLİ:
+                  fill yok
+                  object-cover yok
+                  min-height yok
+
+                  Görsel 2000x1125 oranında gösteriliyor.
+                  Crop / zoom yapılmıyor.
+              ================================================= */}
+
+              <div className="relative w-full overflow-hidden">
+                <Image
+                  src="/images/ozsut-story-main4.jpg"
+                  alt="Özsüt Akhisar bahçe ve mimari görünümü"
+                  width={2000}
+                  height={1125}
+                  quality={100}
+                  sizes="
+                    (max-width: 1024px) 100vw,
+                    (max-width: 1400px) 65vw,
+                    1000px
+                  "
+                  className="block h-auto w-full"
+                />
+              </div>
+
+              {/* =================================================
+                  3'LÜ GALERİ
+              ================================================= */}
+
+              <div className="grid grid-cols-3 gap-2 bg-[#FCFAF7] p-2">
+                {gallery.map((item, index) => (
+                  <motion.div
+                    key={item.src}
+                    initial={{
+                      opacity: 0,
+                      y: 16,
+                    }}
+                    whileInView={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    viewport={{
+                      once: true,
+                    }}
+                    transition={{
+                      duration: 0.65,
+                      delay: index * 0.1,
+                      ease,
+                    }}
+                    className="
+                      group
+                      relative
+                      aspect-[4/3]
+                      overflow-hidden
+                      rounded-[0.95rem]
+                    "
+                  >
+                    <Image
+                      src={item.src}
+                      alt={item.label}
+                      fill
+                      quality={100}
+                      sizes="
+                        (max-width: 1024px) 32vw,
+                        330px
+                      "
+                      className="
+                        object-cover
+                        object-center
+                        transition-transform
+                        duration-700
+                        group-hover:scale-[1.03]
+                      "
+                    />
+
+                    {/* Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
+
+                    {/* Etiket */}
+                    <div className="absolute inset-x-0 bottom-0 p-3 text-center">
+                      <span
+                        className="
+                          text-[7px]
+                          font-semibold
+                          uppercase
+                          tracking-[0.13em]
+                          text-white
+                          sm:text-[8px]
+                          lg:text-[9px]
+                          xl:text-[10px]
+                        "
+                      >
+                        {item.label}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
 
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 22,
-              scale: 0.96,
-            }}
-            whileInView={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            viewport={{
-              once: true,
-            }}
-            transition={{
-              duration: 0.75,
-              delay: 0.5,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="absolute bottom-0 right-5 rounded-2xl border border-[#E7DDD0] bg-white/95 px-6 py-5 shadow-xl backdrop-blur-md sm:right-10"
-          >
-            <p className="text-xs uppercase tracking-[0.28em] text-[#9A8B7F]">
-              1938&apos;den Bugüne
-            </p>
+          {/* ===================================================
+              SAĞ TARAF
+              TIMELINE
+          =================================================== */}
 
-            <p className="mt-1 text-lg font-semibold text-[#2B241E]">
-              Değişmeyen lezzet anlayışı
-            </p>
-          </motion.div>
-        </motion.div>
+          <div className="min-w-0 lg:pt-[66px] xl:pt-[72px]">
+            <div className="relative">
+              {/* Timeline çizgisi */}
+              <div
+                className="
+                  absolute
+                  bottom-5
+                  left-[19px]
+                  top-5
+                  w-px
+                  bg-[#DED1C2]
+                  sm:left-[23px]
+                "
+              />
 
-        {/* Metin alanı */}
-        <motion.div
-          variants={textContainerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-        >
-          <motion.p
-            variants={textItemVariants}
-            className="text-xs font-semibold uppercase tracking-[0.4em] text-[#B28A52] sm:text-sm"
-          >
-            1938&apos;den Günümüze
-          </motion.p>
+              <div className="space-y-8">
+                {timeline.map((item, index) => (
+                  <motion.div
+                    key={item.year}
+                    initial={{
+                      opacity: 0,
+                      y: 24,
+                    }}
+                    whileInView={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    viewport={{
+                      once: true,
+                      amount: 0.25,
+                    }}
+                    transition={{
+                      duration: 0.75,
+                      delay: index * 0.09,
+                      ease,
+                    }}
+                    className="
+                      relative
+                      grid
+                      grid-cols-[40px_minmax(0,1fr)]
+                      gap-5
+                      sm:grid-cols-[48px_minmax(0,1fr)]
+                      sm:gap-6
+                    "
+                  >
+                    {/* Timeline noktası */}
+                    <div
+                      className="
+                        relative
+                        z-10
+                        flex
+                        h-10
+                        w-10
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-[#CBAE87]
+                        bg-[#FCFAF7]
+                        sm:h-12
+                        sm:w-12
+                      "
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#9A6B35]" />
+                    </div>
 
-          <motion.h2
-            variants={textItemVariants}
-            className="mt-7 text-4xl font-semibold leading-tight tracking-tight text-[#2B241E] sm:text-5xl lg:text-6xl"
-          >
-            Bir lezzet
-            <span className="block text-[#B28A52]">
-              hikâyesi
-            </span>
-          </motion.h2>
+                    {/* İçerik */}
+                    <div className="min-w-0 border-b border-[#E5DBD0] pb-8">
+                      <p className="text-sm font-semibold tracking-[0.15em] text-[#9A6B35]">
+                        {item.year}
+                      </p>
 
-          <motion.div
-            variants={textItemVariants}
-            className="mt-8 space-y-6 text-base leading-8 text-[#6E6258] sm:text-lg"
-          >
-            <p>
-              Özsüt&apos;ün 1938 yılında başlayan yolculuğu; kaliteye,
-              ustalığa ve misafir memnuniyetine duyulan bağlılıkla büyümeye
-              devam ediyor.
-            </p>
+                      <h3
+                        className="
+                          mt-2
+                          text-xl
+                          font-semibold
+                          leading-snug
+                          tracking-tight
+                          text-[#29221C]
+                          sm:text-[1.35rem]
+                          xl:text-[1.45rem]
+                        "
+                      >
+                        {item.title}
+                      </h3>
 
-            <p>
-              Bu köklü miras şimdi modern mimarisi, geniş ürün seçenekleri
-              ve sıcak atmosferiyle Akhisar&apos;da yepyeni bir deneyime
-              dönüşüyor.
-            </p>
-          </motion.div>
+                      <p
+                        className="
+                          mt-4
+                          max-w-xl
+                          text-[14px]
+                          leading-7
+                          text-[#71665C]
+                          sm:text-[15px]
+                          sm:leading-7
+                        "
+                      >
+                        {item.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <motion.div
-            variants={textItemVariants}
-            className="mt-10 grid gap-5 sm:grid-cols-3"
-          >
-            {storyStats.map((item, index) => (
-              <motion.div
-                key={item.value}
-                initial={{
-                  opacity: 0,
-                  y: 24,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                }}
-                transition={{
-                  duration: 0.65,
-                  delay: 0.2 + index * 0.12,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className="border-t border-[#DFD5C9] pt-5"
-              >
-                <p className="text-2xl font-semibold text-[#2B241E]">
-                  {item.value}
-                </p>
+      {/* =======================================================
+          MANIFESTO
+      ======================================================= */}
 
-                <p className="mt-2 text-sm leading-6 text-[#887B70]">
-                  {item.label}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.a
-            variants={textItemVariants}
-            href="#experience"
-            whileHover={{
-              x: 6,
-            }}
-            className="mt-10 inline-flex items-center gap-3 text-sm font-semibold text-[#2B241E] transition hover:text-[#B28A52]"
-          >
-            Özsüt Akhisar deneyimini keşfet
-
-            <span aria-hidden="true">
-              →
-            </span>
-          </motion.a>
-        </motion.div>
+      <div className="border-t border-[#E1D6CA]">
+        <ManifestoSection />
       </div>
     </section>
   );

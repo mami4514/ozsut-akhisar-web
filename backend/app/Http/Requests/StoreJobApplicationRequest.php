@@ -13,7 +13,6 @@ class StoreJobApplicationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Kariyer başvurusu herkese açık olacak.
         return true;
     }
 
@@ -49,8 +48,7 @@ class StoreJobApplicationRequest extends FormRequest
             'phone' => [
                 'required',
                 'string',
-                'max:30',
-                'regex:/^[0-9+\s()\-]+$/',
+                'regex:/^05[0-9]{9}$/',
             ],
 
             'email' => [
@@ -60,7 +58,7 @@ class StoreJobApplicationRequest extends FormRequest
             ],
 
             'gender' => [
-                'nullable',
+                'required',
                 Rule::in([
                     'male',
                     'female',
@@ -68,10 +66,12 @@ class StoreJobApplicationRequest extends FormRequest
             ],
 
             'birth_date' => [
-                'nullable',
+                'required',
                 'date',
-                'before:today',
                 'after_or_equal:1940-01-01',
+                'before_or_equal:' . now()
+                    ->subYears(16)
+                    ->format('Y-m-d'),
             ],
 
             'city' => [
@@ -176,11 +176,17 @@ class StoreJobApplicationRequest extends FormRequest
             'position_id.required' =>
                 'Başvurulan pozisyonu seçmelisiniz.',
 
+            'position_id.integer' =>
+                'Başvurulan pozisyon bilgisi geçersiz.',
+
             'position_id.exists' =>
                 'Seçilen pozisyon geçerli veya aktif değil.',
 
             'first_name.required' =>
                 'Ad alanı zorunludur.',
+
+            'first_name.string' =>
+                'Ad alanı geçerli bir metin olmalıdır.',
 
             'first_name.min' =>
                 'Ad en az 2 karakter olmalıdır.',
@@ -191,6 +197,9 @@ class StoreJobApplicationRequest extends FormRequest
             'last_name.required' =>
                 'Soyad alanı zorunludur.',
 
+            'last_name.string' =>
+                'Soyad alanı geçerli bir metin olmalıdır.',
+
             'last_name.min' =>
                 'Soyad en az 2 karakter olmalıdır.',
 
@@ -200,8 +209,11 @@ class StoreJobApplicationRequest extends FormRequest
             'phone.required' =>
                 'Telefon numarası zorunludur.',
 
+            'phone.string' =>
+                'Telefon numarası geçersiz.',
+
             'phone.regex' =>
-                'Geçerli bir telefon numarası giriniz.',
+                'Telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır.',
 
             'email.required' =>
                 'E-posta adresi zorunludur.',
@@ -209,20 +221,41 @@ class StoreJobApplicationRequest extends FormRequest
             'email.email' =>
                 'Geçerli bir e-posta adresi giriniz.',
 
+            'email.max' =>
+                'E-posta adresi en fazla 255 karakter olabilir.',
+
+            'gender.required' =>
+                'Cinsiyet seçimi zorunludur.',
+
             'gender.in' =>
-                'Geçersiz cinsiyet seçimi.',
+                'Cinsiyet alanında yalnızca Kadın veya Erkek seçeneklerinden biri seçilebilir.',
+
+            'birth_date.required' =>
+                'Doğum tarihi alanı zorunludur.',
 
             'birth_date.date' =>
                 'Doğum tarihi geçerli bir tarih olmalıdır.',
 
-            'birth_date.before' =>
-                'Doğum tarihi bugünden önce olmalıdır.',
+            'birth_date.before_or_equal' =>
+                'Başvuru yapabilmek için en az 16 yaşında olmalısınız.',
 
             'birth_date.after_or_equal' =>
                 'Doğum tarihi 1940 yılından önce olamaz.',
 
             'city.required' =>
                 'Şehir alanı zorunludur.',
+
+            'city.string' =>
+                'Şehir alanı geçerli bir metin olmalıdır.',
+
+            'city.max' =>
+                'Şehir alanı en fazla 100 karakter olabilir.',
+
+            'district.string' =>
+                'İlçe alanı geçerli bir metin olmalıdır.',
+
+            'district.max' =>
+                'İlçe alanı en fazla 100 karakter olabilir.',
 
             'experience.required' =>
                 'Deneyim süresi zorunludur.',
@@ -251,6 +284,12 @@ class StoreJobApplicationRequest extends FormRequest
             'military_status.in' =>
                 'Geçersiz askerlik durumu seçimi.',
 
+            'driver_license.string' =>
+                'Ehliyet alanı geçerli bir metin olmalıdır.',
+
+            'driver_license.max' =>
+                'Ehliyet alanı en fazla 50 karakter olabilir.',
+
             'smoker.boolean' =>
                 'Sigara kullanımı alanı doğru veya yanlış olmalıdır.',
 
@@ -259,6 +298,9 @@ class StoreJobApplicationRequest extends FormRequest
 
             'shift_available.boolean' =>
                 'Vardiyalı çalışma alanı doğru veya yanlış olmalıdır.',
+
+            'about.string' =>
+                'Hakkınızda alanı geçerli bir metin olmalıdır.',
 
             'about.max' =>
                 'Kendinizi tanıttığınız alan en fazla 2000 karakter olabilir.',

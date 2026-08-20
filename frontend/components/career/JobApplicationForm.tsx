@@ -3,7 +3,7 @@
 import { Turnstile } from "@marsidev/react-turnstile";
 import axios from "axios";
 import { Loader2, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ApplicationDetailsStep, {
   type EducationLevel,
@@ -11,13 +11,16 @@ import ApplicationDetailsStep, {
   type Gender,
   type MilitaryStatus,
 } from "@/components/career/ApplicationDetailsStep";
+
 import JobApplicationStepIndicator from "@/components/career/JobApplicationStepIndicator";
+
 import PersonalInformationStep from "@/components/career/PersonalInformationStep";
 
 import {
   createJobApplication,
   type CreatedJobApplication,
 } from "@/services/job-application.service";
+
 import {
   getPositions,
   type Position,
@@ -33,79 +36,215 @@ interface ValidationErrorResponse {
 const turnstileSiteKey =
   process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
-export default function JobApplicationForm() {
-  const [step, setStep] = useState<FormStep>(1);
+/* =========================================================
+   VALIDATION HELPERS
+========================================================= */
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+function isValidTurkishMobilePhone(phone: string) {
+  return /^05\d{9}$/.test(phone);
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isAtLeast16YearsOld(birthDate: string) {
+  if (!birthDate) {
+    return false;
+  }
+
+  const birth = new Date(`${birthDate}T00:00:00`);
+
+  if (Number.isNaN(birth.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+
+  let age =
+    today.getFullYear() -
+    birth.getFullYear();
+
+  const monthDifference =
+    today.getMonth() -
+    birth.getMonth();
+
+  const birthdayHasNotOccurredYet =
+    monthDifference < 0 ||
+    (monthDifference === 0 &&
+      today.getDate() < birth.getDate());
+
+  if (birthdayHasNotOccurredYet) {
+    age--;
+  }
+
+  return age >= 16;
+}
+
+export default function JobApplicationForm() {
+  /*
+   * Step değiştiğinde formun başlangıcına
+   * dönmek için kullanıyoruz.
+   */
+  const formTopRef =
+    useRef<HTMLDivElement>(null);
+
+  const [step, setStep] =
+    useState<FormStep>(1);
+
+  /* =========================================================
+     1. ADIM
+  ========================================================= */
+
+  const [firstName, setFirstName] =
+    useState("");
+
+  const [lastName, setLastName] =
+    useState("");
+
+  const [phone, setPhone] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
   const [positionId, setPositionId] =
     useState<number | "">("");
 
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [isLoadingPositions, setIsLoadingPositions] =
-    useState(true);
-  const [positionError, setPositionError] =
-    useState<string | null>(null);
+  const [positions, setPositions] =
+    useState<Position[]>([]);
 
-  const [city, setCity] = useState("");
-  const [district, setDistrict] = useState("");
-  const [gender, setGender] = useState<Gender>("");
-  const [birthDate, setBirthDate] = useState("");
+  const [
+    isLoadingPositions,
+    setIsLoadingPositions,
+  ] = useState(true);
+
+  const [
+    positionError,
+    setPositionError,
+  ] = useState<string | null>(null);
+
+  /* =========================================================
+     2. ADIM
+  ========================================================= */
+
+  const [city, setCity] =
+    useState("");
+
+  const [district, setDistrict] =
+    useState("");
+
+  const [gender, setGender] =
+    useState<Gender>("");
+
+  const [birthDate, setBirthDate] =
+    useState("");
 
   const [experience, setExperience] =
     useState<number | "">("");
 
-  const [educationLevel, setEducationLevel] =
+  const [
+    educationLevel,
+    setEducationLevel,
+  ] =
     useState<EducationLevel>("");
 
-  const [employmentType, setEmploymentType] =
+  const [
+    employmentType,
+    setEmploymentType,
+  ] =
     useState<EmploymentType>("");
 
-  const [militaryStatus, setMilitaryStatus] =
+  const [
+    militaryStatus,
+    setMilitaryStatus,
+  ] =
     useState<MilitaryStatus>("");
 
-  const [driverLicense, setDriverLicense] = useState("");
+  const [
+    driverLicense,
+    setDriverLicense,
+  ] = useState("");
 
   const [smoker, setSmoker] =
     useState<boolean | null>(null);
 
-  const [shiftAvailable, setShiftAvailable] =
+  const [
+    shiftAvailable,
+    setShiftAvailable,
+  ] =
     useState<boolean | null>(null);
 
-  const [about, setAbout] = useState("");
-  const [cv, setCv] = useState<File | null>(null);
-  const [kvkkApproved, setKvkkApproved] = useState(false);
-
-  const [turnstileToken, setTurnstileToken] =
+  const [about, setAbout] =
     useState("");
 
-  const [turnstileKey, setTurnstileKey] =
-    useState(0);
+  const [cv, setCv] =
+    useState<File | null>(null);
 
-  const [turnstileError, setTurnstileError] =
-    useState<string | null>(null);
+  const [
+    kvkkApproved,
+    setKvkkApproved,
+  ] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  /* =========================================================
+     TURNSTILE
+  ========================================================= */
 
-  const [formError, setFormError] =
-    useState<string | null>(null);
+  const [
+    turnstileToken,
+    setTurnstileToken,
+  ] = useState("");
 
-  const [rateLimitError, setRateLimitError] =
-    useState<string | null>(null);
+  const [
+    turnstileKey,
+    setTurnstileKey,
+  ] = useState(0);
+
+  const [
+    turnstileError,
+    setTurnstileError,
+  ] = useState<string | null>(null);
+
+  /* =========================================================
+     FORM STATE
+  ========================================================= */
+
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false);
+
+  const [
+    formError,
+    setFormError,
+  ] = useState<string | null>(null);
+
+  const [
+    rateLimitError,
+    setRateLimitError,
+  ] = useState<string | null>(null);
 
   const [
     recentApplicationError,
     setRecentApplicationError,
   ] = useState<string | null>(null);
 
-  const [validationErrors, setValidationErrors] =
-    useState<string[]>([]);
+  const [
+    validationErrors,
+    setValidationErrors,
+  ] = useState<string[]>([]);
 
-  const [createdApplication, setCreatedApplication] =
-    useState<CreatedJobApplication | null>(null);
+  const [
+    createdApplication,
+    setCreatedApplication,
+  ] =
+    useState<CreatedJobApplication | null>(
+      null
+    );
+
+  /* =========================================================
+     POZİSYONLARI YÜKLE
+  ========================================================= */
 
   useEffect(() => {
     let isCancelled = false;
@@ -114,7 +253,8 @@ export default function JobApplicationForm() {
       try {
         setIsLoadingPositions(true);
 
-        const data = await getPositions();
+        const data =
+          await getPositions();
 
         if (!isCancelled) {
           setPositions(data);
@@ -145,6 +285,38 @@ export default function JobApplicationForm() {
     };
   }, []);
 
+  /* =========================================================
+     STEP DEĞİŞİNCE FORMUN BAŞINA GİT
+  ========================================================= */
+
+  useEffect(() => {
+    /*
+     * İlk render sırasında sayfayı oynatmayalım.
+     */
+    if (step === 1) {
+      return;
+    }
+
+    /*
+     * React'in yeni step'i DOM'a basmasını bekliyoruz.
+     */
+    const frameId =
+      requestAnimationFrame(() => {
+        formTopRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [step]);
+
+  /* =========================================================
+     YARDIMCI FONKSİYONLAR
+  ========================================================= */
+
   function clearMessages() {
     setFormError(null);
     setRateLimitError(null);
@@ -157,47 +329,166 @@ export default function JobApplicationForm() {
     setTurnstileError(null);
 
     setTurnstileKey(
-      (currentKey) => currentKey + 1
+      (currentKey) =>
+        currentKey + 1
     );
   }
+
+  function scrollToFormTop() {
+    requestAnimationFrame(() => {
+      formTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  /* =========================================================
+     1. ADIM VALIDATION
+  ========================================================= */
 
   function handleNextStep() {
     clearMessages();
 
+    const normalizedFirstName =
+      firstName.trim();
+
+    const normalizedLastName =
+      lastName.trim();
+
+    const normalizedPhone =
+      phone.trim();
+
+    const normalizedEmail =
+      email.trim();
+
     if (
-      firstName.trim().length < 2 ||
-      lastName.trim().length < 2 ||
-      phone.trim() === "" ||
-      email.trim() === "" ||
-      positionId === ""
+      normalizedFirstName.length < 2
     ) {
       setFormError(
-        "Devam etmek için ad, soyad, telefon, e-posta ve pozisyon alanlarını eksiksiz doldurun."
+        "Ad alanı en az 2 karakter olmalıdır."
       );
 
       return;
     }
 
-    setStep(2);
+    if (
+      normalizedLastName.length < 2
+    ) {
+      setFormError(
+        "Soyad alanı en az 2 karakter olmalıdır."
+      );
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+      return;
+    }
+
+    if (
+      !isValidTurkishMobilePhone(
+        normalizedPhone
+      )
+    ) {
+      setFormError(
+        "Telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır."
+      );
+
+      return;
+    }
+
+    if (
+      !isValidEmail(
+        normalizedEmail
+      )
+    ) {
+      setFormError(
+        "Lütfen geçerli bir e-posta adresi giriniz."
+      );
+
+      return;
+    }
+
+    if (positionId === "") {
+      setFormError(
+        "Başvurmak istediğiniz pozisyonu seçmelisiniz."
+      );
+
+      return;
+    }
+
+    setFirstName(
+      normalizedFirstName
+    );
+
+    setLastName(
+      normalizedLastName
+    );
+
+    setPhone(
+      normalizedPhone
+    );
+
+    setEmail(
+      normalizedEmail
+    );
+
+    /*
+     * Burada ayrıca window.scrollTo kullanmıyoruz.
+     * Yukarıdaki useEffect, step DOM'a basıldıktan
+     * sonra scroll işlemini yapacak.
+     */
+    setStep(2);
   }
 
   function handlePreviousStep() {
     clearMessages();
+
     setStep(1);
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    /*
+     * useEffect ilk step için bilinçli olarak
+     * çalışmadığından geri dönüşte manuel scroll.
+     */
+    scrollToFormTop();
   }
 
+  /* =========================================================
+     2. ADIM VALIDATION
+  ========================================================= */
+
   function validateSecondStep(): boolean {
-    if (city.trim() === "") {
+    if (
+      gender !== "male" &&
+      gender !== "female"
+    ) {
+      setFormError(
+        "Cinsiyet alanında Kadın veya Erkek seçeneklerinden birini seçmelisiniz."
+      );
+
+      return false;
+    }
+
+    if (!birthDate) {
+      setFormError(
+        "Doğum tarihi alanını doldurmalısınız."
+      );
+
+      return false;
+    }
+
+    if (
+      !isAtLeast16YearsOld(
+        birthDate
+      )
+    ) {
+      setFormError(
+        "Başvuru yapabilmek için en az 16 yaşında olmalısınız."
+      );
+
+      return false;
+    }
+
+    if (
+      city.trim() === ""
+    ) {
       setFormError(
         "Şehir alanını doldurmalısınız."
       );
@@ -205,7 +496,9 @@ export default function JobApplicationForm() {
       return false;
     }
 
-    if (experience === "") {
+    if (
+      experience === ""
+    ) {
       setFormError(
         "Deneyim süresini seçmelisiniz."
       );
@@ -213,7 +506,9 @@ export default function JobApplicationForm() {
       return false;
     }
 
-    if (educationLevel === "") {
+    if (
+      educationLevel === ""
+    ) {
       setFormError(
         "Eğitim durumunu seçmelisiniz."
       );
@@ -221,7 +516,9 @@ export default function JobApplicationForm() {
       return false;
     }
 
-    if (employmentType === "") {
+    if (
+      employmentType === ""
+    ) {
       setFormError(
         "Çalışma şeklini seçmelisiniz."
       );
@@ -229,7 +526,9 @@ export default function JobApplicationForm() {
       return false;
     }
 
-    if (shiftAvailable === null) {
+    if (
+      shiftAvailable === null
+    ) {
       setFormError(
         "Vardiyalı çalışma durumunu belirtmelisiniz."
       );
@@ -245,7 +544,10 @@ export default function JobApplicationForm() {
       return false;
     }
 
-    if (cv.size > 5 * 1024 * 1024) {
+    if (
+      cv.size >
+      5 * 1024 * 1024
+    ) {
       setFormError(
         "CV dosyası en fazla 5 MB olabilir."
       );
@@ -259,7 +561,11 @@ export default function JobApplicationForm() {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
-    if (!allowedCvTypes.includes(cv.type)) {
+    if (
+      !allowedCvTypes.includes(
+        cv.type
+      )
+    ) {
       setFormError(
         "CV yalnızca PDF, DOC veya DOCX formatında olabilir."
       );
@@ -286,11 +592,61 @@ export default function JobApplicationForm() {
     return true;
   }
 
+  /* =========================================================
+     SUBMIT
+  ========================================================= */
+
   async function handleSubmit() {
     clearMessages();
 
     if (
+      firstName.trim().length < 2
+    ) {
+      setFormError(
+        "Ad alanını kontrol ediniz."
+      );
+
+      return;
+    }
+
+    if (
+      lastName.trim().length < 2
+    ) {
+      setFormError(
+        "Soyad alanını kontrol ediniz."
+      );
+
+      return;
+    }
+
+    if (
+      !isValidTurkishMobilePhone(
+        phone.trim()
+      )
+    ) {
+      setFormError(
+        "Telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır."
+      );
+
+      return;
+    }
+
+    if (
+      !isValidEmail(
+        email.trim()
+      )
+    ) {
+      setFormError(
+        "Lütfen geçerli bir e-posta adresi giriniz."
+      );
+
+      return;
+    }
+
+    if (
       positionId === "" ||
+      gender === "" ||
+      birthDate === "" ||
       experience === "" ||
       educationLevel === "" ||
       employmentType === "" ||
@@ -304,7 +660,9 @@ export default function JobApplicationForm() {
       return;
     }
 
-    if (!validateSecondStep()) {
+    if (
+      !validateSecondStep()
+    ) {
       return;
     }
 
@@ -313,38 +671,61 @@ export default function JobApplicationForm() {
     try {
       const application =
         await createJobApplication({
-          position_id: positionId,
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-          email,
-          city,
+          position_id:
+            positionId,
+
+          first_name:
+            firstName.trim(),
+
+          last_name:
+            lastName.trim(),
+
+          phone:
+            phone.trim(),
+
+          email:
+            email.trim(),
+
+          city:
+            city.trim(),
+
           experience,
-          education_level: educationLevel,
-          employment_type: employmentType,
-          shift_available: shiftAvailable,
+
+          education_level:
+            educationLevel,
+
+          employment_type:
+            employmentType,
+
+          shift_available:
+            shiftAvailable,
+
           cv,
-          kvkk_approved: kvkkApproved,
-          turnstile_token: turnstileToken,
+
+          kvkk_approved:
+            kvkkApproved,
+
+          turnstile_token:
+            turnstileToken,
 
           ...(district.trim() !== "" && {
-            district,
+            district:
+              district.trim(),
           }),
 
-          ...(gender !== "" && {
-            gender,
-          }),
+          gender,
 
-          ...(birthDate !== "" && {
-            birth_date: birthDate,
-          }),
+          birth_date:
+            birthDate,
 
           ...(militaryStatus !== "" && {
-            military_status: militaryStatus,
+            military_status:
+              militaryStatus,
           }),
 
           ...(driverLicense.trim() !== "" && {
-            driver_license: driverLicense,
+            driver_license:
+              driverLicense.trim(),
           }),
 
           ...(smoker !== null && {
@@ -352,11 +733,14 @@ export default function JobApplicationForm() {
           }),
 
           ...(about.trim() !== "" && {
-            about,
+            about:
+              about.trim(),
           }),
         });
 
-      setCreatedApplication(application);
+      setCreatedApplication(
+        application
+      );
 
       window.scrollTo({
         top: 0,
@@ -368,11 +752,6 @@ export default function JobApplicationForm() {
         error
       );
 
-      /*
-       * Turnstile token'ları tek kullanımlıdır.
-       * Gönderim başarısız olursa yeni token
-       * oluşturulması için widget sıfırlanır.
-       */
       resetTurnstile();
 
       if (
@@ -380,25 +759,24 @@ export default function JobApplicationForm() {
           error
         )
       ) {
-        /*
-         * IP rate limit.
-         */
-        if (error.response?.status === 429) {
+        if (
+          error.response?.status === 429
+        ) {
           setRateLimitError(
-            error.response?.data?.message ??
+            error.response?.data
+              ?.message ??
               "Çok fazla başvuru gönderdiniz. Lütfen 10 dakika sonra tekrar deneyiniz."
           );
 
           return;
         }
 
-        /*
-         * Aynı e-posta veya telefon numarası ile
-         * son 24 saat içinde yeniden başvuru.
-         */
-        if (error.response?.status === 409) {
+        if (
+          error.response?.status === 409
+        ) {
           setRecentApplicationError(
-            error.response?.data?.message ??
+            error.response?.data
+              ?.message ??
               "Bu bilgilerle yakın zamanda bir başvuru yapılmıştır."
           );
 
@@ -406,9 +784,12 @@ export default function JobApplicationForm() {
         }
 
         const responseErrors =
-          error.response?.data?.errors;
+          error.response?.data
+            ?.errors;
 
-        if (responseErrors) {
+        if (
+          responseErrors
+        ) {
           setValidationErrors(
             Object.values(
               responseErrors
@@ -423,7 +804,8 @@ export default function JobApplicationForm() {
         }
 
         setFormError(
-          error.response?.data?.message ??
+          error.response?.data
+            ?.message ??
             "Başvuru gönderilirken bir hata oluştu."
         );
 
@@ -438,6 +820,10 @@ export default function JobApplicationForm() {
     }
   }
 
+  /* =========================================================
+     FORM RESET
+  ========================================================= */
+
   function resetForm() {
     setStep(1);
 
@@ -451,29 +837,37 @@ export default function JobApplicationForm() {
     setDistrict("");
     setGender("");
     setBirthDate("");
+
     setExperience("");
+
     setEducationLevel("");
     setEmploymentType("");
     setMilitaryStatus("");
+
     setDriverLicense("");
+
     setSmoker(null);
     setShiftAvailable(null);
+
     setAbout("");
 
     setCv(null);
+
     setKvkkApproved(false);
 
     setTurnstileToken("");
     setTurnstileError(null);
 
     setTurnstileKey(
-      (currentKey) => currentKey + 1
+      (currentKey) =>
+        currentKey + 1
     );
 
     setFormError(null);
     setRateLimitError(null);
     setRecentApplicationError(null);
     setValidationErrors([]);
+
     setCreatedApplication(null);
 
     window.scrollTo({
@@ -482,40 +876,71 @@ export default function JobApplicationForm() {
     });
   }
 
+  /* =========================================================
+     SUCCESS SCREEN
+  ========================================================= */
+
   if (createdApplication) {
     return (
-      <section className="rounded-xl border bg-white p-6 text-center shadow-sm sm:p-10">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-700">
+      <section
+        className="
+          rounded-[1.8rem]
+          border
+          border-[#DED2C5]
+          bg-white
+          p-6
+          text-center
+          shadow-[0_24px_70px_rgba(66,49,34,0.08)]
+          sm:p-10
+        "
+      >
+        <div
+          className="
+            mx-auto
+            flex
+            h-16
+            w-16
+            items-center
+            justify-center
+            rounded-full
+            bg-emerald-100
+            text-3xl
+            text-emerald-700
+          "
+        >
           ✓
         </div>
 
-        <h2 className="mt-6 text-2xl font-bold">
+        <h2 className="mt-6 text-2xl font-semibold tracking-[-0.02em] text-[#2B241E]">
           Başvurunuz Alındı
         </h2>
 
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Sayın {createdApplication.full_name}, başvurunuz
-          başarıyla alınmıştır. Yönetim ekibimiz başvurunuzu
-          değerlendirdikten sonra sizinle iletişime geçecektir.
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#71655B] sm:text-base">
+          Sayın{" "}
+          {createdApplication.full_name},
+          başvurunuz başarıyla alınmıştır.
+          Yönetim ekibimiz başvurunuzu
+          değerlendirdikten sonra sizinle
+          iletişime geçecektir.
         </p>
 
-        <div className="mx-auto mt-8 max-w-md rounded-lg border bg-muted/20 p-5 text-left">
+        <div className="mx-auto mt-8 max-w-md rounded-[1rem] border border-[#DED2C5] bg-[#F8F4EF] p-5 text-left">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-[#817367]">
               Başvuru numarası
             </span>
 
-            <span className="text-sm font-semibold">
+            <span className="text-sm font-semibold text-[#2B241E]">
               #{createdApplication.id}
             </span>
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-4">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-[#817367]">
               Pozisyon
             </span>
 
-            <span className="text-right text-sm font-semibold">
+            <span className="text-right text-sm font-semibold text-[#2B241E]">
               {createdApplication.position?.name ??
                 "Pozisyon bilgisi alınamadı"}
             </span>
@@ -526,7 +951,22 @@ export default function JobApplicationForm() {
           <button
             type="button"
             onClick={resetForm}
-            className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="
+              inline-flex
+              min-h-12
+              items-center
+              justify-center
+              rounded-full
+              bg-[#A87339]
+              px-7
+              text-sm
+              font-semibold
+              text-white
+              transition
+              duration-300
+              hover:-translate-y-0.5
+              hover:bg-[#91602F]
+            "
           >
             Yeni Başvuru Yap
           </button>
@@ -535,24 +975,36 @@ export default function JobApplicationForm() {
     );
   }
 
+  /* =========================================================
+     FORM
+  ========================================================= */
+
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm sm:p-8">
+    <section>
+      {/* SCROLL TARGET */}
+      <div
+        ref={formTopRef}
+        className="scroll-mt-6"
+      />
+
       <div className="mb-8">
-        <h2 className="text-2xl font-bold">
+        <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[#2B241E]">
           Başvuru Bilgileri
         </h2>
 
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm leading-6 text-[#75695E]">
           Lütfen aşağıdaki bilgileri eksiksiz doldurunuz.
         </p>
       </div>
 
-      <JobApplicationStepIndicator currentStep={step} />
+      <JobApplicationStepIndicator
+        currentStep={step}
+      />
 
       {positionError && (
         <div
           role="alert"
-          className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mb-6 rounded-[0.9rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           {positionError}
         </div>
@@ -561,16 +1013,20 @@ export default function JobApplicationForm() {
       {formError && (
         <div
           role="alert"
-          className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mb-6 rounded-[0.9rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           <p className="font-medium">
             {formError}
           </p>
 
-          {validationErrors.length > 0 && (
+          {validationErrors.length >
+            0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {validationErrors.map(
-                (message, index) => (
+                (
+                  message,
+                  index
+                ) => (
                   <li
                     key={`${message}-${index}`}
                   >
@@ -587,9 +1043,12 @@ export default function JobApplicationForm() {
         className="space-y-8"
         onSubmit={(event) => {
           event.preventDefault();
+
           void handleSubmit();
         }}
       >
+        {/* STEP 1 */}
+
         {step === 1 && (
           <PersonalInformationStep
             firstName={firstName}
@@ -598,13 +1057,25 @@ export default function JobApplicationForm() {
             email={email}
             positionId={positionId}
             positions={positions}
-            onFirstNameChange={setFirstName}
-            onLastNameChange={setLastName}
-            onPhoneChange={setPhone}
-            onEmailChange={setEmail}
-            onPositionChange={setPositionId}
+            onFirstNameChange={
+              setFirstName
+            }
+            onLastNameChange={
+              setLastName
+            }
+            onPhoneChange={
+              setPhone
+            }
+            onEmailChange={
+              setEmail
+            }
+            onPositionChange={
+              setPositionId
+            }
           />
         )}
+
+        {/* STEP 2 */}
 
         {step === 2 && (
           <>
@@ -614,20 +1085,40 @@ export default function JobApplicationForm() {
               gender={gender}
               birthDate={birthDate}
               experience={experience}
-              educationLevel={educationLevel}
-              employmentType={employmentType}
-              militaryStatus={militaryStatus}
-              driverLicense={driverLicense}
+              educationLevel={
+                educationLevel
+              }
+              employmentType={
+                employmentType
+              }
+              militaryStatus={
+                militaryStatus
+              }
+              driverLicense={
+                driverLicense
+              }
               smoker={smoker}
-              shiftAvailable={shiftAvailable}
+              shiftAvailable={
+                shiftAvailable
+              }
               about={about}
               cv={cv}
-              kvkkApproved={kvkkApproved}
+              kvkkApproved={
+                kvkkApproved
+              }
               onCityChange={setCity}
-              onDistrictChange={setDistrict}
-              onGenderChange={setGender}
-              onBirthDateChange={setBirthDate}
-              onExperienceChange={setExperience}
+              onDistrictChange={
+                setDistrict
+              }
+              onGenderChange={
+                setGender
+              }
+              onBirthDateChange={
+                setBirthDate
+              }
+              onExperienceChange={
+                setExperience
+              }
               onEducationLevelChange={
                 setEducationLevel
               }
@@ -640,31 +1131,37 @@ export default function JobApplicationForm() {
               onDriverLicenseChange={
                 setDriverLicense
               }
-              onSmokerChange={setSmoker}
+              onSmokerChange={
+                setSmoker
+              }
               onShiftAvailableChange={
                 setShiftAvailable
               }
-              onAboutChange={setAbout}
+              onAboutChange={
+                setAbout
+              }
               onCvChange={setCv}
               onKvkkApprovedChange={
                 setKvkkApproved
               }
             />
 
-            <div className="rounded-xl border bg-muted/20 p-4 sm:p-5">
+            {/* TURNSTILE */}
+
+            <div className="rounded-[1rem] border border-[#DED2C5] bg-[#F8F4EF] p-4 sm:p-5">
               <div className="mb-4 flex items-start gap-3">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                   <ShieldCheck className="size-4" />
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold">
+                  <h3 className="text-sm font-semibold text-[#2B241E]">
                     Güvenlik doğrulaması
                   </h3>
 
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    Başvuruyu göndermeden önce robot
-                    olmadığınızı doğrulayın.
+                  <p className="mt-1 text-xs leading-5 text-[#817367]">
+                    Başvuruyu göndermeden önce
+                    robot olmadığınızı doğrulayın.
                   </p>
                 </div>
               </div>
@@ -672,35 +1169,45 @@ export default function JobApplicationForm() {
               {!turnstileSiteKey ? (
                 <div
                   role="alert"
-                  className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  className="rounded-[0.8rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 >
                   Turnstile site anahtarı
-                  tanımlanmamış.
+                  tanımlanmamış.{" "}
 
-                  <code className="ml-1">
+                  <code>
                     NEXT_PUBLIC_TURNSTILE_SITE_KEY
                   </code>{" "}
-
                   değerini kontrol edin.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <Turnstile
                     key={turnstileKey}
-                    siteKey={turnstileSiteKey}
+                    siteKey={
+                      turnstileSiteKey
+                    }
                     onSuccess={(token) => {
-                      setTurnstileToken(token);
-                      setTurnstileError(null);
+                      setTurnstileToken(
+                        token
+                      );
+
+                      setTurnstileError(
+                        null
+                      );
                     }}
                     onExpire={() => {
-                      setTurnstileToken("");
+                      setTurnstileToken(
+                        ""
+                      );
 
                       setTurnstileError(
                         "Robot doğrulamasının süresi doldu. Lütfen tekrar doğrulayın."
                       );
                     }}
                     onError={() => {
-                      setTurnstileToken("");
+                      setTurnstileToken(
+                        ""
+                      );
 
                       setTurnstileError(
                         "Robot doğrulaması yüklenemedi. Lütfen tekrar deneyin."
@@ -732,6 +1239,8 @@ export default function JobApplicationForm() {
               )}
             </div>
 
+            {/* RATE LIMIT */}
+
             {rateLimitError && (
               <div
                 role="alert"
@@ -752,15 +1261,18 @@ export default function JobApplicationForm() {
                     </p>
 
                     <p className="mt-3 text-xs leading-5 text-amber-700">
-                      Spam ve otomatik başvuruları önlemek
-                      amacıyla aynı IP adresinden kısa süre
-                      içerisinde sınırlı sayıda başvuru kabul
+                      Spam ve otomatik başvuruları
+                      önlemek amacıyla aynı IP
+                      adresinden kısa süre içerisinde
+                      sınırlı sayıda başvuru kabul
                       edilmektedir.
                     </p>
                   </div>
                 </div>
               </div>
             )}
+
+            {/* RECENT APPLICATION */}
 
             {recentApplicationError && (
               <div
@@ -782,11 +1294,12 @@ export default function JobApplicationForm() {
                     </p>
 
                     <p className="mt-3 text-xs leading-5 text-sky-700">
-                      Başvurunuz sistemimizde kayıtlıdır.
-                      Aynı bilgilerle tekrar başvuru yapmanıza
-                      gerek yoktur. Başvurunuz
-                      değerlendirildikten sonra sizinle
-                      iletişime geçilecektir.
+                      Başvurunuz sistemimizde
+                      kayıtlıdır. Aynı bilgilerle
+                      tekrar başvuru yapmanıza gerek
+                      yoktur. Başvurunuz
+                      değerlendirildikten sonra
+                      sizinle iletişime geçilecektir.
                     </p>
                   </div>
                 </div>
@@ -795,8 +1308,10 @@ export default function JobApplicationForm() {
           </>
         )}
 
+        {/* BUTTONS */}
+
         <div
-          className={`flex flex-col gap-3 border-t pt-6 sm:flex-row ${
+          className={`flex flex-col gap-3 border-t border-[#E2D8CD] pt-6 sm:flex-row ${
             step === 1
               ? "sm:justify-end"
               : "sm:justify-between"
@@ -805,9 +1320,32 @@ export default function JobApplicationForm() {
           {step === 2 && (
             <button
               type="button"
-              onClick={handlePreviousStep}
-              disabled={isSubmitting}
-              className="inline-flex h-11 items-center justify-center rounded-md border bg-white px-6 text-sm font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={
+                handlePreviousStep
+              }
+              disabled={
+                isSubmitting
+              }
+              className="
+                inline-flex
+                min-h-12
+                items-center
+                justify-center
+                rounded-full
+                border
+                border-[#D8CCBE]
+                bg-white
+                px-6
+                text-sm
+                font-semibold
+                text-[#51463D]
+                transition
+                duration-300
+                hover:border-[#A87339]
+                hover:text-[#A87339]
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             >
               ← Geri
             </button>
@@ -816,9 +1354,30 @@ export default function JobApplicationForm() {
           {step === 1 ? (
             <button
               type="button"
-              onClick={handleNextStep}
-              disabled={isLoadingPositions}
-              className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={
+                handleNextStep
+              }
+              disabled={
+                isLoadingPositions
+              }
+              className="
+                inline-flex
+                min-h-12
+                items-center
+                justify-center
+                rounded-full
+                bg-[#A87339]
+                px-7
+                text-sm
+                font-semibold
+                text-white
+                transition
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-[#91602F]
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             >
               {isLoadingPositions
                 ? "Pozisyonlar Yükleniyor..."
@@ -832,7 +1391,24 @@ export default function JobApplicationForm() {
                 !turnstileToken ||
                 !turnstileSiteKey
               }
-              className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="
+                inline-flex
+                min-h-12
+                items-center
+                justify-center
+                rounded-full
+                bg-[#A87339]
+                px-7
+                text-sm
+                font-semibold
+                text-white
+                transition
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-[#91602F]
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             >
               {isSubmitting ? (
                 <>
