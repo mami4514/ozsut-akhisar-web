@@ -28,6 +28,10 @@ class JobApplication extends Model
         'smoker',
         'shift_available',
         'about',
+
+        'reference_name',
+        'reference_phone',
+
         'cv_path',
         'kvkk_approved',
         'status',

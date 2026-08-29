@@ -10,6 +10,11 @@ export interface JobApplicationLocation {
   district: string | null;
 }
 
+export interface JobApplicationReference {
+  name: string | null;
+  phone: string | null;
+}
+
 export interface JobApplicationCv {
   path: string | null;
   url: string | null;
@@ -26,8 +31,9 @@ export interface JobApplicationDetail {
 
   phone: string;
   email: string;
-  gender: string | null;
-  birth_date: string | null;
+
+  gender: "male" | "female";
+  birth_date: string;
 
   location: JobApplicationLocation;
 
@@ -41,6 +47,8 @@ export interface JobApplicationDetail {
   shift_available: boolean | null;
 
   about: string | null;
+
+  reference: JobApplicationReference;
 
   cv: JobApplicationCv;
 
@@ -86,14 +94,19 @@ export interface GetJobApplicationsParams {
 
 export interface CreateJobApplicationPayload {
   position_id: number;
+
   first_name: string;
   last_name: string;
+
   phone: string;
   email: string;
-  gender?: "male" | "female";
-  birth_date?: string;
+
+  gender: "male" | "female";
+  birth_date: string;
+
   city: string;
   district?: string;
+
   experience: number;
 
   education_level:
@@ -105,7 +118,9 @@ export interface CreateJobApplicationPayload {
     | "master_degree"
     | "doctorate";
 
-  employment_type: "full_time" | "part_time";
+  employment_type:
+    | "full_time"
+    | "part_time";
 
   military_status?:
     | "completed"
@@ -114,11 +129,23 @@ export interface CreateJobApplicationPayload {
     | "not_completed";
 
   driver_license?: string;
+
   smoker?: boolean;
+
   shift_available: boolean;
+
   about?: string;
+
+  /*
+   * Referans bilgileri isteğe bağlıdır.
+   */
+  reference_name?: string;
+  reference_phone?: string;
+
   cv: File;
+
   kvkk_approved: boolean;
+
   turnstile_token: string;
 }
 
@@ -179,20 +206,28 @@ function appendOptionalField(
   const normalizedValue = value?.trim();
 
   if (normalizedValue) {
-    formData.append(key, normalizedValue);
+    formData.append(
+      key,
+      normalizedValue
+    );
   }
 }
 
 function getAccessToken() {
-  if (typeof window === "undefined") {
+  if (
+    typeof window === "undefined"
+  ) {
     return null;
   }
 
-  return localStorage.getItem("access_token");
+  return localStorage.getItem(
+    "access_token"
+  );
 }
 
 function getAuthHeaders() {
-  const token = getAccessToken();
+  const token =
+    getAccessToken();
 
   return {
     Authorization: `Bearer ${token}`,
@@ -202,37 +237,101 @@ function getAuthHeaders() {
 export async function createJobApplication(
   payload: CreateJobApplicationPayload
 ): Promise<CreatedJobApplication> {
-  const formData = new FormData();
+  const formData =
+    new FormData();
 
-  formData.append("position_id", String(payload.position_id));
-  formData.append("first_name", payload.first_name.trim());
-  formData.append("last_name", payload.last_name.trim());
-  formData.append("phone", payload.phone.trim());
-  formData.append("email", payload.email.trim());
-  formData.append("city", payload.city.trim());
-  formData.append("experience", String(payload.experience));
-  formData.append("education_level", payload.education_level);
-  formData.append("employment_type", payload.employment_type);
+  /* =========================================================
+     ZORUNLU ALANLAR
+  ========================================================= */
+
+  formData.append(
+    "position_id",
+    String(payload.position_id)
+  );
+
+  formData.append(
+    "first_name",
+    payload.first_name.trim()
+  );
+
+  formData.append(
+    "last_name",
+    payload.last_name.trim()
+  );
+
+  formData.append(
+    "phone",
+    payload.phone.trim()
+  );
+
+  formData.append(
+    "email",
+    payload.email.trim()
+  );
+
+  formData.append(
+    "gender",
+    payload.gender
+  );
+
+  formData.append(
+    "birth_date",
+    payload.birth_date
+  );
+
+  formData.append(
+    "city",
+    payload.city.trim()
+  );
+
+  formData.append(
+    "experience",
+    String(payload.experience)
+  );
+
+  formData.append(
+    "education_level",
+    payload.education_level
+  );
+
+  formData.append(
+    "employment_type",
+    payload.employment_type
+  );
 
   formData.append(
     "shift_available",
-    payload.shift_available ? "1" : "0"
+    payload.shift_available
+      ? "1"
+      : "0"
   );
 
   formData.append(
     "kvkk_approved",
-    payload.kvkk_approved ? "1" : "0"
+    payload.kvkk_approved
+      ? "1"
+      : "0"
   );
-  
-  formData.append(
-   "turnstile_token",
-   payload.turnstile_token
- );
-  formData.append("cv", payload.cv);
 
-  appendOptionalField(formData, "gender", payload.gender);
-  appendOptionalField(formData, "birth_date", payload.birth_date);
-  appendOptionalField(formData, "district", payload.district);
+  formData.append(
+    "turnstile_token",
+    payload.turnstile_token
+  );
+
+  formData.append(
+    "cv",
+    payload.cv
+  );
+
+  /* =========================================================
+     OPSİYONEL ALANLAR
+  ========================================================= */
+
+  appendOptionalField(
+    formData,
+    "district",
+    payload.district
+  );
 
   appendOptionalField(
     formData,
@@ -246,21 +345,58 @@ export async function createJobApplication(
     payload.driver_license
   );
 
-  appendOptionalField(formData, "about", payload.about);
+  appendOptionalField(
+    formData,
+    "about",
+    payload.about
+  );
 
-  if (payload.smoker !== undefined) {
-    formData.append("smoker", payload.smoker ? "1" : "0");
+  /* =========================================================
+     REFERANS BİLGİLERİ
+  ========================================================= */
+
+  appendOptionalField(
+    formData,
+    "reference_name",
+    payload.reference_name
+  );
+
+  appendOptionalField(
+    formData,
+    "reference_phone",
+    payload.reference_phone
+  );
+
+  /* =========================================================
+     BOOLEAN OPSİYONEL ALANLAR
+  ========================================================= */
+
+  if (
+    payload.smoker !== undefined
+  ) {
+    formData.append(
+      "smoker",
+      payload.smoker
+        ? "1"
+        : "0"
+    );
   }
 
-  const response = await api.post<CreateJobApplicationResponse>(
-    "/job-applications",
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
+  /* =========================================================
+     REQUEST
+  ========================================================= */
+
+  const response =
+    await api.post<CreateJobApplicationResponse>(
+      "/job-applications",
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
 
   return response.data.data;
 }
@@ -268,56 +404,90 @@ export async function createJobApplication(
 export async function getJobApplications(
   params: GetJobApplicationsParams = {}
 ): Promise<JobApplicationListResult> {
-  const response = await api.get<JobApplicationListResponse>(
-    "/job-applications",
-    {
-      params: {
-        page: params.page ?? 1,
-        search: params.search?.trim() || undefined,
-        status: params.status || undefined,
-        position_id: params.positionId || undefined,
-      },
-      headers: getAuthHeaders(),
-    }
-  );
+  const response =
+    await api.get<JobApplicationListResponse>(
+      "/job-applications",
+      {
+        params: {
+          page:
+            params.page ?? 1,
+
+          search:
+            params.search?.trim() ||
+            undefined,
+
+          status:
+            params.status ||
+            undefined,
+
+          position_id:
+            params.positionId ||
+            undefined,
+        },
+
+        headers:
+          getAuthHeaders(),
+      }
+    );
 
   return {
-    applications: response.data.data,
-    meta: response.data.meta,
+    applications:
+      response.data.data,
+
+    meta:
+      response.data.meta,
   };
 }
 
 export async function getArchivedJobApplications(
   params: GetJobApplicationsParams = {}
 ): Promise<JobApplicationListResult> {
-  const response = await api.get<JobApplicationListResponse>(
-    "/job-applications/archive",
-    {
-      params: {
-        page: params.page ?? 1,
-        search: params.search?.trim() || undefined,
-        status: params.status || undefined,
-        position_id: params.positionId || undefined,
-      },
-      headers: getAuthHeaders(),
-    }
-  );
+  const response =
+    await api.get<JobApplicationListResponse>(
+      "/job-applications/archive",
+      {
+        params: {
+          page:
+            params.page ?? 1,
+
+          search:
+            params.search?.trim() ||
+            undefined,
+
+          status:
+            params.status ||
+            undefined,
+
+          position_id:
+            params.positionId ||
+            undefined,
+        },
+
+        headers:
+          getAuthHeaders(),
+      }
+    );
 
   return {
-    applications: response.data.data,
-    meta: response.data.meta,
+    applications:
+      response.data.data,
+
+    meta:
+      response.data.meta,
   };
 }
 
 export async function getJobApplication(
   id: number
 ): Promise<JobApplicationDetail> {
-  const response = await api.get<JobApplicationDetailResponse>(
-    `/job-applications/${id}`,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const response =
+    await api.get<JobApplicationDetailResponse>(
+      `/job-applications/${id}`,
+      {
+        headers:
+          getAuthHeaders(),
+      }
+    );
 
   return response.data.data;
 }
@@ -331,7 +501,8 @@ export async function updateJobApplicationStatus(
       `/job-applications/${id}/status`,
       payload,
       {
-        headers: getAuthHeaders(),
+        headers:
+          getAuthHeaders(),
       }
     );
 
@@ -341,13 +512,15 @@ export async function updateJobApplicationStatus(
 export async function archiveJobApplication(
   id: number
 ): Promise<string> {
-  const response = await api.patch<JobApplicationActionResponse>(
-    `/job-applications/${id}/archive`,
-    undefined,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const response =
+    await api.patch<JobApplicationActionResponse>(
+      `/job-applications/${id}/archive`,
+      undefined,
+      {
+        headers:
+          getAuthHeaders(),
+      }
+    );
 
   return response.data.message;
 }
@@ -355,13 +528,15 @@ export async function archiveJobApplication(
 export async function restoreJobApplication(
   id: number
 ): Promise<JobApplicationDetail> {
-  const response = await api.patch<RestoreJobApplicationResponse>(
-    `/job-applications/${id}/restore`,
-    undefined,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const response =
+    await api.patch<RestoreJobApplicationResponse>(
+      `/job-applications/${id}/restore`,
+      undefined,
+      {
+        headers:
+          getAuthHeaders(),
+      }
+    );
 
   return response.data.data;
 }
@@ -369,12 +544,14 @@ export async function restoreJobApplication(
 export async function forceDeleteJobApplication(
   id: number
 ): Promise<string> {
-  const response = await api.delete<JobApplicationActionResponse>(
-    `/job-applications/${id}`,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const response =
+    await api.delete<JobApplicationActionResponse>(
+      `/job-applications/${id}`,
+      {
+        headers:
+          getAuthHeaders(),
+      }
+    );
 
   return response.data.message;
 }

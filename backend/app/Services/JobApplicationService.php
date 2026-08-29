@@ -219,15 +219,38 @@ class JobApplicationService
                     $applicationData['turnstile_token']
                 );
 
+                /*
+                 * E-posta adresini normalize et.
+                 */
                 $applicationData['email'] = mb_strtolower(
                     trim(
                         (string) $applicationData['email']
                     )
                 );
 
+                /*
+                 * Başvuru sahibinin telefon numarasını temizle.
+                 */
                 $applicationData['phone'] = trim(
                     (string) $applicationData['phone']
                 );
+
+                /*
+                 * Referans bilgileri isteğe bağlıdır.
+                 * Girilmişlerse baştaki ve sondaki
+                 * gereksiz boşlukları temizle.
+                 */
+                if (!empty($applicationData['reference_name'])) {
+                    $applicationData['reference_name'] = trim(
+                        (string) $applicationData['reference_name']
+                    );
+                }
+
+                if (!empty($applicationData['reference_phone'])) {
+                    $applicationData['reference_phone'] = trim(
+                        (string) $applicationData['reference_phone']
+                    );
+                }
 
                 $applicationData['cv_path'] = $cvPath;
                 $applicationData['status'] = 'new';
@@ -241,6 +264,10 @@ class JobApplicationService
                 return $jobApplication->load('position');
             });
         } catch (Throwable $exception) {
+            /*
+             * Veritabanı işlemi başarısız olursa
+             * yüklenen CV dosyasını da temizle.
+             */
             if ($cvPath !== null) {
                 Storage::disk('public')->delete($cvPath);
             }

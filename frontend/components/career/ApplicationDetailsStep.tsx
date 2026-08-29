@@ -32,6 +32,10 @@ interface ApplicationDetailsStepProps {
   smoker: boolean | null;
   shiftAvailable: boolean | null;
   about: string;
+
+  referenceName: string;
+  referencePhone: string;
+
   cv: File | null;
   kvkkApproved: boolean;
 
@@ -47,6 +51,10 @@ interface ApplicationDetailsStepProps {
   onSmokerChange: (value: boolean | null) => void;
   onShiftAvailableChange: (value: boolean | null) => void;
   onAboutChange: (value: string) => void;
+
+  onReferenceNameChange: (value: string) => void;
+  onReferencePhoneChange: (value: string) => void;
+
   onCvChange: (file: File | null) => void;
   onKvkkApprovedChange: (value: boolean) => void;
 }
@@ -107,8 +115,13 @@ export default function ApplicationDetailsStep({
   smoker,
   shiftAvailable,
   about,
+
+  referenceName,
+  referencePhone,
+
   cv,
   kvkkApproved,
+
   onCityChange,
   onDistrictChange,
   onGenderChange,
@@ -121,6 +134,10 @@ export default function ApplicationDetailsStep({
   onSmokerChange,
   onShiftAvailableChange,
   onAboutChange,
+
+  onReferenceNameChange,
+  onReferencePhoneChange,
+
   onCvChange,
   onKvkkApprovedChange,
 }: ApplicationDetailsStepProps) {
@@ -590,6 +607,106 @@ export default function ApplicationDetailsStep({
                 Hayır, çalışamam
               </option>
             </select>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          REFERANS BİLGİLERİ
+      ===================================================== */}
+
+      <section className="border-t border-[#E7DED5] pt-10">
+        <div className="mb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className={sectionTitleClassName}>
+              Referans Bilgileri
+            </h3>
+
+            <span className="rounded-full bg-[#F4EDE4] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9A6B35]">
+              İsteğe Bağlı
+            </span>
+          </div>
+
+          <p className={sectionDescriptionClassName}>
+            Varsa profesyonel veya kişisel bir referansınızın iletişim
+            bilgilerini paylaşabilirsiniz.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Referans Ad Soyad */}
+
+          <div className="space-y-2">
+            <label
+              htmlFor="reference_name"
+              className={labelClassName}
+            >
+              Referans Ad Soyad
+            </label>
+
+            <input
+              id="reference_name"
+              type="text"
+              value={referenceName}
+              onChange={(event) =>
+                onReferenceNameChange(event.target.value)
+              }
+              placeholder="Örn. Ahmet Yılmaz"
+              autoComplete="off"
+              maxLength={200}
+              className={inputClassName}
+            />
+
+            <p className="text-[11px] leading-5 text-[#988A7D]">
+              Bu alan zorunlu değildir.
+            </p>
+          </div>
+
+          {/* Referans Telefon */}
+
+          <div className="space-y-2">
+            <label
+              htmlFor="reference_phone"
+              className={labelClassName}
+            >
+              Referans Telefon Numarası
+            </label>
+
+            <input
+              id="reference_phone"
+              type="tel"
+              inputMode="numeric"
+              value={referencePhone}
+              onChange={(event) => {
+                const value = event.target.value
+                  .replace(/\D/g, "")
+                  .slice(0, 11);
+
+                onReferencePhoneChange(value);
+              }}
+              placeholder="05xxxxxxxxx"
+              autoComplete="off"
+              maxLength={11}
+              className={inputClassName}
+            />
+
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] leading-5 text-[#988A7D]">
+                Referans bilgisi vermek zorunlu değildir.
+              </p>
+
+              {referencePhone.length > 0 && (
+                <span
+                  className={`shrink-0 text-[10px] font-semibold ${
+                    referencePhone.length === 11
+                      ? "text-emerald-600"
+                      : "text-[#A99B8D]"
+                  }`}
+                >
+                  {referencePhone.length}/11
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </section>

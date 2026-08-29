@@ -146,6 +146,21 @@ class StoreJobApplicationRequest extends FormRequest
                 'max:2000',
             ],
 
+            /*
+             * Referans bilgileri isteğe bağlıdır.
+             */
+            'reference_name' => [
+                'nullable',
+                'string',
+                'max:200',
+            ],
+
+            'reference_phone' => [
+                'nullable',
+                'string',
+                'regex:/^05[0-9]{9}$/',
+            ],
+
             'cv' => [
                 'required',
                 'file',
@@ -305,6 +320,22 @@ class StoreJobApplicationRequest extends FormRequest
             'about.max' =>
                 'Kendinizi tanıttığınız alan en fazla 2000 karakter olabilir.',
 
+            /*
+             * Referans validation mesajları
+             */
+
+            'reference_name.string' =>
+                'Referans adı soyadı geçerli bir metin olmalıdır.',
+
+            'reference_name.max' =>
+                'Referans adı soyadı en fazla 200 karakter olabilir.',
+
+            'reference_phone.string' =>
+                'Referans telefon numarası geçersiz.',
+
+            'reference_phone.regex' =>
+                'Referans telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır.',
+
             'cv.required' =>
                 'CV dosyası yüklemelisiniz.',
 
@@ -356,6 +387,10 @@ class StoreJobApplicationRequest extends FormRequest
             'smoker' => 'sigara kullanımı',
             'shift_available' => 'vardiyalı çalışma',
             'about' => 'hakkınızda',
+
+            'reference_name' => 'referans adı soyadı',
+            'reference_phone' => 'referans telefon numarası',
+
             'cv' => 'CV',
             'kvkk_approved' => 'KVKK onayı',
             'turnstile_token' => 'robot doğrulaması',

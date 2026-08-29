@@ -13,7 +13,6 @@ import ApplicationDetailsStep, {
 } from "@/components/career/ApplicationDetailsStep";
 
 import JobApplicationStepIndicator from "@/components/career/JobApplicationStepIndicator";
-
 import PersonalInformationStep from "@/components/career/PersonalInformationStep";
 
 import {
@@ -83,8 +82,8 @@ function isAtLeast16YearsOld(birthDate: string) {
 
 export default function JobApplicationForm() {
   /*
-   * Step değiştiğinde formun başlangıcına
-   * dönmek için kullanıyoruz.
+   * Step değiştiğinde form başlangıcına
+   * scroll yapmak için kullanıyoruz.
    */
   const formTopRef =
     useRef<HTMLDivElement>(null);
@@ -177,6 +176,20 @@ export default function JobApplicationForm() {
 
   const [about, setAbout] =
     useState("");
+
+  /*
+   * REFERANS BİLGİLERİ
+   * İkisi de isteğe bağlı.
+   */
+  const [
+    referenceName,
+    setReferenceName,
+  ] = useState("");
+
+  const [
+    referencePhone,
+    setReferencePhone,
+  ] = useState("");
 
   const [cv, setCv] =
     useState<File | null>(null);
@@ -430,11 +443,6 @@ export default function JobApplicationForm() {
       normalizedEmail
     );
 
-    /*
-     * Burada ayrıca window.scrollTo kullanmıyoruz.
-     * Yukarıdaki useEffect, step DOM'a basıldıktan
-     * sonra scroll işlemini yapacak.
-     */
     setStep(2);
   }
 
@@ -443,10 +451,6 @@ export default function JobApplicationForm() {
 
     setStep(1);
 
-    /*
-     * useEffect ilk step için bilinçli olarak
-     * çalışmadığından geri dönüşte manuel scroll.
-     */
     scrollToFormTop();
   }
 
@@ -531,6 +535,23 @@ export default function JobApplicationForm() {
     ) {
       setFormError(
         "Vardiyalı çalışma durumunu belirtmelisiniz."
+      );
+
+      return false;
+    }
+
+    /*
+     * Referans telefonu boş bırakılabilir.
+     * Ancak girildiyse geçerli formatta olmalı.
+     */
+    if (
+      referencePhone.trim() !== "" &&
+      !isValidTurkishMobilePhone(
+        referencePhone.trim()
+      )
+    ) {
+      setFormError(
+        "Referans telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır."
       );
 
       return false;
@@ -660,6 +681,23 @@ export default function JobApplicationForm() {
       return;
     }
 
+    /*
+     * Submit öncesi referans telefonu
+     * ikinci kez kontrol ediliyor.
+     */
+    if (
+      referencePhone.trim() !== "" &&
+      !isValidTurkishMobilePhone(
+        referencePhone.trim()
+      )
+    ) {
+      setFormError(
+        "Referans telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır."
+      );
+
+      return;
+    }
+
     if (
       !validateSecondStep()
     ) {
@@ -735,6 +773,20 @@ export default function JobApplicationForm() {
           ...(about.trim() !== "" && {
             about:
               about.trim(),
+          }),
+
+          /*
+           * Referans bilgileri yalnızca
+           * girildiklerinde API'ye gönderilir.
+           */
+          ...(referenceName.trim() !== "" && {
+            reference_name:
+              referenceName.trim(),
+          }),
+
+          ...(referencePhone.trim() !== "" && {
+            reference_phone:
+              referencePhone.trim(),
           }),
         });
 
@@ -850,6 +902,12 @@ export default function JobApplicationForm() {
     setShiftAvailable(null);
 
     setAbout("");
+
+    /*
+     * Referans bilgilerini temizle.
+     */
+    setReferenceName("");
+    setReferencePhone("");
 
     setCv(null);
 
@@ -982,6 +1040,7 @@ export default function JobApplicationForm() {
   return (
     <section>
       {/* SCROLL TARGET */}
+
       <div
         ref={formTopRef}
         className="scroll-mt-6"
@@ -1001,6 +1060,8 @@ export default function JobApplicationForm() {
         currentStep={step}
       />
 
+      {/* Pozisyon yükleme hatası */}
+
       {positionError && (
         <div
           role="alert"
@@ -1009,6 +1070,8 @@ export default function JobApplicationForm() {
           {positionError}
         </div>
       )}
+
+      {/* Genel hata */}
 
       {formError && (
         <div
@@ -1047,7 +1110,9 @@ export default function JobApplicationForm() {
           void handleSubmit();
         }}
       >
-        {/* STEP 1 */}
+        {/* =====================================================
+            STEP 1
+        ===================================================== */}
 
         {step === 1 && (
           <PersonalInformationStep
@@ -1075,7 +1140,9 @@ export default function JobApplicationForm() {
           />
         )}
 
-        {/* STEP 2 */}
+        {/* =====================================================
+            STEP 2
+        ===================================================== */}
 
         {step === 2 && (
           <>
@@ -1102,11 +1169,22 @@ export default function JobApplicationForm() {
                 shiftAvailable
               }
               about={about}
+
+              referenceName={
+                referenceName
+              }
+              referencePhone={
+                referencePhone
+              }
+
               cv={cv}
               kvkkApproved={
                 kvkkApproved
               }
-              onCityChange={setCity}
+
+              onCityChange={
+                setCity
+              }
               onDistrictChange={
                 setDistrict
               }
@@ -1140,13 +1218,25 @@ export default function JobApplicationForm() {
               onAboutChange={
                 setAbout
               }
-              onCvChange={setCv}
+
+              onReferenceNameChange={
+                setReferenceName
+              }
+              onReferencePhoneChange={
+                setReferencePhone
+              }
+
+              onCvChange={
+                setCv
+              }
               onKvkkApprovedChange={
                 setKvkkApproved
               }
             />
 
-            {/* TURNSTILE */}
+            {/* =================================================
+                TURNSTILE
+            ================================================= */}
 
             <div className="rounded-[1rem] border border-[#DED2C5] bg-[#F8F4EF] p-4 sm:p-5">
               <div className="mb-4 flex items-start gap-3">
@@ -1160,8 +1250,8 @@ export default function JobApplicationForm() {
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-[#817367]">
-                    Başvuruyu göndermeden önce
-                    robot olmadığınızı doğrulayın.
+                    Başvuruyu göndermeden önce robot olmadığınızı
+                    doğrulayın.
                   </p>
                 </div>
               </div>
@@ -1171,8 +1261,7 @@ export default function JobApplicationForm() {
                   role="alert"
                   className="rounded-[0.8rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 >
-                  Turnstile site anahtarı
-                  tanımlanmamış.{" "}
+                  Turnstile site anahtarı tanımlanmamış.{" "}
 
                   <code>
                     NEXT_PUBLIC_TURNSTILE_SITE_KEY
@@ -1239,7 +1328,9 @@ export default function JobApplicationForm() {
               )}
             </div>
 
-            {/* RATE LIMIT */}
+            {/* =================================================
+                RATE LIMIT
+            ================================================= */}
 
             {rateLimitError && (
               <div
@@ -1261,18 +1352,18 @@ export default function JobApplicationForm() {
                     </p>
 
                     <p className="mt-3 text-xs leading-5 text-amber-700">
-                      Spam ve otomatik başvuruları
-                      önlemek amacıyla aynı IP
-                      adresinden kısa süre içerisinde
-                      sınırlı sayıda başvuru kabul
-                      edilmektedir.
+                      Spam ve otomatik başvuruları önlemek amacıyla aynı
+                      IP adresinden kısa süre içerisinde sınırlı sayıda
+                      başvuru kabul edilmektedir.
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* RECENT APPLICATION */}
+            {/* =================================================
+                RECENT APPLICATION
+            ================================================= */}
 
             {recentApplicationError && (
               <div
@@ -1294,12 +1385,10 @@ export default function JobApplicationForm() {
                     </p>
 
                     <p className="mt-3 text-xs leading-5 text-sky-700">
-                      Başvurunuz sistemimizde
-                      kayıtlıdır. Aynı bilgilerle
-                      tekrar başvuru yapmanıza gerek
-                      yoktur. Başvurunuz
-                      değerlendirildikten sonra
-                      sizinle iletişime geçilecektir.
+                      Başvurunuz sistemimizde kayıtlıdır. Aynı bilgilerle
+                      tekrar başvuru yapmanıza gerek yoktur. Başvurunuz
+                      değerlendirildikten sonra sizinle iletişime
+                      geçilecektir.
                     </p>
                   </div>
                 </div>
@@ -1308,7 +1397,9 @@ export default function JobApplicationForm() {
           </>
         )}
 
-        {/* BUTTONS */}
+        {/* =====================================================
+            BUTTONS
+        ===================================================== */}
 
         <div
           className={`flex flex-col gap-3 border-t border-[#E2D8CD] pt-6 sm:flex-row ${

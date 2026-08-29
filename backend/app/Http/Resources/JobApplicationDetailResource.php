@@ -49,6 +49,14 @@ class JobApplicationDetailResource extends JsonResource
 
             'about' => $this->about,
 
+            /*
+             * Referans bilgileri isteğe bağlıdır.
+             */
+            'reference' => [
+                'name' => $this->reference_name,
+                'phone' => $this->reference_phone,
+            ],
+
             'cv' => [
                 'path' => $this->cv_path,
                 'url' => $this->cv_path

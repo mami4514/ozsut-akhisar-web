@@ -54,7 +54,7 @@ const experienceItems: ExperienceItem[] = [
     description:
       "1938'den gelen lezzet mirasını modern servis anlayışı, güçlü sunumlar ve özel bir mekân atmosferiyle buluşturuyoruz.",
     category: "Lezzet & Deneyim",
-    image: "/images/ozsut-experience-04.png",
+    image: "/images/ozsut-render-37.jpg",
     imageAlt: "Özsüt Akhisar lezzet ve servis deneyimi",
     desktopClassName: "md:col-span-12 md:row-span-1",
     mobileAspect: "aspect-[16/9]",

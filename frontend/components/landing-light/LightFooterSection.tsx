@@ -131,7 +131,7 @@ export default function LightFooterSection() {
             </div>
 
             <a
-              href="#"
+              href="https://www.instagram.com/ozsutakhisar/"
               aria-label="Özsüt Akhisar Instagram hesabı"
               className="group inline-flex items-center gap-3 text-sm text-[#6E6258] transition hover:text-[#2B241E]"
             >
